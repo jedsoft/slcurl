@@ -61,7 +61,7 @@ all: $(MODULES)
 #---------------------------------------------------------------------------
 # Put Rules to create the modules here
 #---------------------------------------------------------------------------
-curl-module.so: curl-module.c
+curl-module.so: curl-module.c version.h
 	$(CC_SHARED) $(INCS) curl-module.c -o curl-module.so $(LIBS)
 #---------------------------------------------------------------------------
 # Regression tests

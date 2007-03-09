@@ -31,6 +31,10 @@ USA.
 SLANG_MODULE(curl);
 #include "version.h"
 
+#define MAKE_CURL_VERSION(a,b,c) (((a)<<16) + ((b)<<8) + (c))
+#define CURL_VERSION_GE(a,b,c) \
+   (LIBCURL_VERSION_NUM >= MAKE_CURL_VERSION((a),(b),(c)))
+
 static int Curl_Error = 0;
 static SLtype Easy_Type_Id = 0;
 static SLtype Multi_Type_Id = 0;
@@ -291,7 +295,7 @@ static int check_handle (Easy_Type *ez, unsigned int flags)
      }
    if (ez->flags & flags)
      {
-	SLang_verror (SL_RunTime_Error, "It is illegal to call this function when curl_perform is running");
+	SLang_verror (SL_RunTime_Error, "It is illegal to call this function while curl_perform is running");
 	return -1;
      }
 
@@ -1443,6 +1447,90 @@ static int get_multi_length_intrin (void)
 
 /*}}}*/
 
+
+static void escape_intrin (SLang_BString_Type *bstr)
+{
+   SLang_MMT_Type *mmt;
+   Easy_Type *ez;
+   char *escaped_string;
+   char *url;
+   unsigned int len;
+
+   if (NULL == (url = (char *) SLbstring_get_pointer (bstr, &len)))
+     return;
+
+   if (NULL == (mmt = pop_easy_type (&ez, 0))) 
+     return;
+
+#if CURL_VERSION_GE(7,15,4)
+   escaped_string = curl_easy_escape (ez->handle, url, (int)len);
+#else
+   escaped_string = curl_unescape (url, (int) len);
+#endif
+
+   if (escaped_string == NULL)
+     SLang_set_error (Curl_Error);
+   else
+     {
+	char *str = SLang_create_nslstring (escaped_string, (int)len);
+	if (str != NULL)
+	  {
+	     (void) SLang_push_string (str);
+	     SLang_free_slstring (str);
+	  }
+	curl_free (escaped_string);
+     }
+   SLang_free_mmt(mmt);
+}
+
+static void unescape_intrin (char *url)
+{
+   SLang_MMT_Type *mmt;
+   Easy_Type *ez;
+   char *unescaped_string;
+#if CURL_VERSION_GE(7,15,4)
+   int outlength;
+#endif
+
+   if (NULL == (mmt = pop_easy_type (&ez, 0))) 
+     return;
+
+#if CURL_VERSION_GE(7,15,4)
+   unescaped_string = curl_easy_unescape (ez->handle, url, 0, &outlength);
+#else
+   unescaped_string = curl_unescape (url, 0);
+#endif
+
+   if (unescaped_string == NULL)
+     SLang_set_error (Curl_Error);
+   else
+     {
+	int len = strlen (unescaped_string);
+#if CURL_VERSION_GE(7,15,4)
+	if (len != outlength)
+	  {
+	     SLang_BString_Type *bstr = SLbstring_create ((unsigned char *)unescaped_string, outlength);
+	     if (bstr != NULL)
+	       {
+		  (void) SLang_push_bstring (bstr);
+		  SLbstring_free (bstr);
+	       }
+	  }
+	else
+#endif
+	  {
+	     char *str = SLang_create_nslstring (unescaped_string, len);
+	     if (str != NULL)
+	       {
+		  (void) SLang_push_string (str);
+		  SLang_free_slstring (str);
+	       }
+	  }
+	curl_free (unescaped_string);
+     }
+   SLang_free_mmt(mmt);
+}
+
 static SLang_Intrin_Fun_Type Module_Intrinsics [] =
 {
    MAKE_INTRINSIC_1("curl_new", new_curl_intrin, SLANG_VOID_TYPE, SLANG_STRING_TYPE),
@@ -1460,6 +1548,9 @@ static SLang_Intrin_Fun_Type Module_Intrinsics [] =
    MAKE_INTRINSIC_0("curl_multi_close", multi_close, SLANG_VOID_TYPE),
    MAKE_INTRINSIC_0("curl_multi_info_read", multi_info_read, SLANG_VOID_TYPE),
    
+   MAKE_INTRINSIC_1("curl_easy_escape", escape_intrin, SLANG_VOID_TYPE, SLANG_BSTRING_TYPE),
+   MAKE_INTRINSIC_1("curl_easy_unescape", unescape_intrin, SLANG_VOID_TYPE, SLANG_STRING_TYPE),
+
    /* Local Additions */
    MAKE_INTRINSIC_0("curl_get_url", get_url_intrin, SLANG_VOID_TYPE),
    MAKE_INTRINSIC_0("curl_multi_length", get_multi_length_intrin, SLANG_INT_TYPE),
@@ -1610,6 +1701,10 @@ static SLang_IConstant_Type Module_IConstants [] =
    MAKE_ICONSTANT("CURL_GLOBAL_SSL", CURL_GLOBAL_SSL),
    MAKE_ICONSTANT("CURL_GLOBAL_WIN32", CURL_GLOBAL_WIN32),
    MAKE_ICONSTANT("CURL_GLOBAL_NOTHING", CURL_GLOBAL_NOTHING),
+
+   MAKE_ICONSTANT("CURL_NETRC_IGNORED", CURL_NETRC_IGNORED),
+   MAKE_ICONSTANT("CURL_NETRC_OPTIONAL", CURL_NETRC_OPTIONAL),
+   MAKE_ICONSTANT("CURL_NETRC_REQUIRED", CURL_NETRC_OPTIONAL),
 
    MAKE_ICONSTANT("CURLINFO_EFFECTIVE_URL", CURLINFO_EFFECTIVE_URL),
    MAKE_ICONSTANT("CURLINFO_RESPONSE_CODE", CURLINFO_RESPONSE_CODE),
