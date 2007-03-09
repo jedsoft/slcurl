@@ -1465,14 +1465,14 @@ static void escape_intrin (SLang_BString_Type *bstr)
 #if CURL_VERSION_GE(7,15,4)
    escaped_string = curl_easy_escape (ez->handle, url, (int)len);
 #else
-   escaped_string = curl_unescape (url, (int) len);
+   escaped_string = curl_escape (url, (int) len);
 #endif
 
    if (escaped_string == NULL)
      SLang_set_error (Curl_Error);
    else
      {
-	char *str = SLang_create_nslstring (escaped_string, (int)len);
+	char *str = SLang_create_slstring (escaped_string);
 	if (str != NULL)
 	  {
 	     (void) SLang_push_string (str);
