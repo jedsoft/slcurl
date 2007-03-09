@@ -1,0 +1,80 @@
+This distribution contains code for the S-Lang cURL module.  See the
+documentation in the doc/ directory for information about using the
+module once it has been installed.
+
+cURL itself is a command-line tool that for transfering files using a
+multitude of protocols (FTP, FTPS, HTTP, HTTPS, GOPHER, TELNET, ...).
+The S-Lang module interfaces with the cURL library allowing access to
+such protocols from the S-Lang interpreter.
+
+To build the module, you will need the following additional libraries
+installed:
+
+   1.  Version 2 of slang library <http://www.jedsoft.org/slang/>.
+       The module will not work with version 1.
+
+   2.  A recent version of the cURL library.  This library is part of
+       the cURL distribution, and may be obtained from
+       <http://curl.haxx.se/>.  Debian "Sarge" users can install the
+       cURL library using
+       
+          apt-get install libcurl3-dev
+
+You must run the configure script before you can compile the module.
+If the slang library is installed in a non-standard location, then you
+will need to specify the location of the library as arguments to the
+configure script.  For example, suppose libslang.so is located in
+/home/bill/lib and its include file slang.h is located in
+/home/bill/include. Then one would run the configure script using:
+
+  ./configure --with-slanglib=/home/bill/lib \
+              --with-slanginc=/home/bill/include
+
+or, the shorter form which assumes a common pathname prefix for the
+lib and include directories:
+
+  ./configure --with-slang=/home/bill
+
+Similarly, if libcurl.so is not installed in a standard location, then
+you will need to use the --with-curlinc and --with-curllib, or
+--with-curl options.  For example, if if libcurl.so is in
+/opt/soft/lib and curl/curl.h is in /opt/soft/include, then use
+
+   --with-curl=/opt/soft
+
+as an argument to the configure script.  (Note: curl.h will be
+installed in a curl subdirectory, i.e., /opt/soft/include/curl/curl.h).
+
+You should also specify a location for the modules (*.so) and any associated
+script (*.sl) files created by this package.  The default location for
+the modules is in
+
+   $prefix/lib/slang/modules/
+
+Any .sl files will be installed in
+
+   $exec_prefix/share/slsh/local-packages/
+
+where the values of the variable $prefix defaults to /usr/local, and
+that of $exec_prefix to the value of $prefix.  These values may be
+changed using the --prefix and --exec-prefix configure script
+parameters.  For example, to set the value of $prefix to /home/bill,
+use
+
+   ./configure --prefix=/home/bill ...
+
+For more help using the configure script, run it using 
+
+   ./configure --help
+
+It is also a good idea to read the INSTALL.txt file located in this
+directory.
+
+Once the configure script has been run, you should inspect
+the Makefile that it generated in the src directory.  Then building
+and installing the library should involve nothing more than:
+
+   make 
+   make install
+
+You may have to have root privileges to peform the last step. 

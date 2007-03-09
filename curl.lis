@@ -1,0 +1,35 @@
+@curl.lis
+@configure 0755
+@COPYING
+@README
+@INSTALL.txt
+@changes.txt
+
+@demo/translate 0755
+
+@autoconf/Makefile.in
+@autoconf/aclocal.m4
+@autoconf/config.guess 0755
+@autoconf/config.sub 0755
+@autoconf/configure.ac
+@autoconf/install-sh 0755
+@autoconf/mkinsdir.sh 0755
+
+@src/config.hin
+@src/Makefile.in
+@src/version.h
+@src/curl.sl
+@src/babelfish.sl
+@src/curl-module.c
+@src/mkversion.sh 0755
+
+@doc/tm/Makefile
+@doc/tm/fixtex.sl
+@doc/tm/curl.tm
+@doc/tm/curlfuns.tm
+@doc/tm/local.tm
+@doc/tm/helpfile.tm
+@doc/text/curl.txt
+@doc/help/curl.hlp
+
+#@src/tests/test_curl.sl

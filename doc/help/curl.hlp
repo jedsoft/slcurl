@@ -1,0 +1,408 @@
+curl_new
+
+ SYNOPSIS
+  Instantiate a new Curl_Type object
+
+ USAGE
+  Curl_Type curl_new(String_Type url)
+
+ DESCRIPTION
+  This function instantiates and returns a Curl_Type and
+  returns it.  It is a wrapper around the cURL (http://curl.haxx.se/libcurl/) library function
+  `curl_easy_init'.  The Curl_Type object is created with
+  the CURLOPT_NOPROGRESS option set to 1, and
+  CURLOPT_VERBOSE set to 0.
+
+  Upon failure, the function throws a `CurlError' exception.
+
+ SEE ALSO
+  curl_setopt, curl_multi_new, curl_perform
+
+--------------------------------------------------------------
+
+curl_setopt
+
+ SYNOPSIS
+  Set an option for a specified Curl_Type object
+
+ USAGE
+  curl_setopt (Curl_Type c, Int_Type opt, ...)
+
+ DESCRIPTION
+  The `curl_setopt' function is a wrapper around the cURL (http://curl.haxx.se/libcurl/)
+  library function curl_easy_setopt (http://curl.haxx.se/libcurl/c/curl_easy_setopt.html).  For more information
+  about the options that this function takes, see
+  curl_easy_setopt (http://curl.haxx.se/libcurl/c/curl_easy_setopt.html).  Only the differences between the
+  module function and the corresponding API function will be explained
+  here.
+
+  The current version of the `curl' module does not support the
+  CURLOPT_*DATA options.  Instead, support for these options
+  has been integrated into the corresponding callback functions.  For
+  example, the CURLOPT_WRITEDATA option has been merged with
+  the CURLOPT_WRITEFUNCTION.  Moreover the prototypes for the
+  callbacks have been changed to simplify their use, as described below.
+<descrip>
+CURLOPT_WRITEFUNCTION This option requires two parameters: a
+  reference to the callback function, and a user-defined object to
+  pass to that function.  The callback function will be passed two
+  arguments: the specified user-defined object, and a binary string to
+  write.  Upon failure, the function must return -1, and any other
+  value will indicate success.
+CURLOPT_READFUNCTION This option requires two parameters: a
+  reference to the callback function, and a user-defined object to
+  pass to that function.  The callback function will be passed two
+  arguments: the specified user-defined object, and the maximum number
+  of bytes to be read by the function.  Upon success, the function
+  should return a (binary) string, otherwise it should return NULL to
+  indicate failure.
+CURLOPT_WRITEHEADER This option requires two parameters: a
+  reference to the callback function, and a user-defined object to
+  pass to that function.  The callback function will be passed two
+  arguments: the specified user-defined object, and a header string
+  write.  The function must return -1 upon failure, or any other
+  integer to indicate success.
+CURLOPT_PROGRESSFUNCTION This option requires two parameters: a
+  reference to the callback function, and a user-defined object to
+  pass to that function.  The callback function will be passed five
+  arguments: the specified user-defined object, and four double
+  precision floating point values that represent the total number of
+  bytes to be downloaded, the total downloaded so far, the total to be
+  uploaded, and the total currently uploaded.  This function must
+  return 0 to indicate success, or non-zero to indicate failure.
+</descrip>
+
+  A number of the options in the cURL (http://curl.haxx.se/libcurl/) API take a linked list of
+  strings.  Instead of a linked list, the module requires an array of
+  strings for such options, e.g.,
+
+    curl_setopt (c, CURLOPT_HTTPHEADER,
+                 ["User-Agent: S-Lang curl module",
+                  "Content-Type: text/xml; charset=UTF-8",
+                  "Content-Length: 1234"]);
+
+
+ EXAMPLE
+  The following example illustrates how to write the contents of a
+  specified URL to a file, its download progress to stdout, and
+  the contents of its header to variable:
+
+    define write_callback (fp, str)
+    {
+       return fputs (str, fp);
+    }
+    define progress_callback (fp, dltotal, dlnow, ultotal, ulnow)
+    {
+       if (-1 == fprintf (fp, "Bytes Received: %d\n", int(dlnow)))
+         return -1;
+       if (dltotal > 0.0)
+         {
+            if (-1 == fprintf (fp, "Percent Received: %g\n",
+                               dlnow/dltotal * 100.0))
+              return -1;
+         }
+       return 0;
+    }
+    define header_callback (strp, str)
+    {
+       @strp += str;
+       return 0;
+    }
+    define download_url (url, file)
+    {
+       variable fp = fopen (file, "w");
+       variable c = curl_new (url);
+       curl_setopt (c, CURLOPT_FOLLOWLOCATION);
+       curl_setopt (c, CURLOPT_WRITEFUNCTION, &write_callback, fp);
+       curl_setopt (c, CURLOPT_PROGRESSFUNCTION, &progress_callback, stdout);
+       variable var = "";
+       curl_setopt (c, CURLOPT_HEADERFUNCTION, &header_callback, &var);
+       curl_perform (c);
+       () = fprintf (stdout, "Header: %s\n", var);
+    }
+
+
+ SEE ALSO
+  curl_new, curl_perform, curl_multi_new
+
+--------------------------------------------------------------
+
+curl_global_init
+
+ SYNOPSIS
+  Initialize the Curl library
+
+ USAGE
+  curl_global_init (flags)
+
+ DESCRIPTION
+  This function is a wrapper around the corresponding cURL (http://curl.haxx.se/libcurl/) library
+  function.  See its documentation (http://curl.haxx.se/libcurl/c/curl_global_init.html) for
+  more information.
+
+ SEE ALSO
+  curl_global_cleanup
+
+--------------------------------------------------------------
+
+curl_global_cleanup
+
+ SYNOPSIS
+  Finalize the Curl library
+
+ USAGE
+  curl_global_cleanup
+
+ DESCRIPTION
+  This function is a wrapper around the corresponding cURL (http://curl.haxx.se/libcurl/) library
+  function.  See its documentation (http://curl.haxx.se/libcurl/c/curl_global_cleanup.html) for
+  more information.
+
+ SEE ALSO
+  curl_global_init
+
+--------------------------------------------------------------
+
+curl_perform
+
+ SYNOPSIS
+  Transfer a file
+
+ USAGE
+  curl_perform
+
+ DESCRIPTION
+  This function is a wrapper around the curl_easy_perform (http://curl.haxx.se/libcurl/c/curl_easy_perform.html)
+  cURL (http://curl.haxx.se/libcurl/) library function.  See its
+  documentation (http://curl.haxx.se/libcurl/c/curl_easy_perform.html) for more information.
+
+ SEE ALSO
+  curl_new, curl_setopt, curl_multi_perform
+
+--------------------------------------------------------------
+
+curl_get_info
+
+ SYNOPSIS
+  Get information about a Curl_Type object
+
+ USAGE
+  info = curl_get_info (Curl_Type c, Int_Type type)
+
+ DESCRIPTION
+  This function returns information of the requested type from a
+  Curl_Type object.   The data returned depends upon the value
+  of the `type' argument.  For more information, see see the
+  documentation for the cURL (http://curl.haxx.se/libcurl/) library curl_easy_getinfo (http://curl.haxx.se/libcurl/c/curl_easy_getinfo.html) function.
+
+ EXAMPLE
+  This example shows how to use the `curl_get_info' function to
+  obtain the effective URL used for the transfer.
+
+    url = curl_get_info (c, CURLINFO_EFFECTIVE_URL);
+
+
+ SEE ALSO
+  curl_new, curl_multi_info_read
+
+--------------------------------------------------------------
+
+curl_close
+
+ SYNOPSIS
+  Close a Curl_Type object
+
+ USAGE
+  curl_close
+
+ DESCRIPTION
+  This function is a wrapper around the curl_easy_cleanup (http://curl.haxx.se/libcurl/c/curl_easy_cleanup.html)
+  cURL (http://curl.haxx.se/libcurl/) library function.  See its
+  documentation (http://curl.haxx.se/libcurl/c/curl_easy_perform.html) for more information.
+
+ NOTES
+  Normally there is no need to call this function because the module
+  automatically frees any memory associated with the Curl_Type
+  object when it is no longer referenced.
+
+ SEE ALSO
+  curl_new
+
+--------------------------------------------------------------
+
+curl_multi_new
+
+ SYNOPSIS
+  Instantiate a new Curl_Multi_Type object
+
+ USAGE
+  Curl_Multi_Type curl_multi_new ()
+
+ DESCRIPTION
+  This function is a wrapper around the curl_multi_init (http://curl.haxx.se/libcurl/c/curl_multi_init.html)
+  cURL (http://curl.haxx.se/libcurl/) library function.  It creates a new instance of a
+  Curl_Multi_Type object and returns it.
+
+ SEE ALSO
+  curl_multi_perform, curl_setopt
+
+--------------------------------------------------------------
+
+curl_multi_perform
+
+ SYNOPSIS
+  Process a Curl_Multi_Type object
+
+ USAGE
+  Int_Type curl_multi_perform (Curl_Multi_Type m [,Double_Type dt])
+
+ DESCRIPTION
+  This function is a wrapper around the curl_multi_perform (http://curl.haxx.se/libcurl/c/curl_multi_perform.html)
+  cURL (http://curl.haxx.se/libcurl/) library function.  However, the `curl' module function
+  takes an additional argument (`dt') that causes the function to
+  wait up to that many seconds for one of the underlying
+  Curl_Type objects to become ready for reading or writing.
+  The function returns the number of Curl_Type.
+
+ SEE ALSO
+  curl_multi_new, curl_multi_length, curl_multi_add_handle
+
+--------------------------------------------------------------
+
+curl_multi_remove_handle
+
+ SYNOPSIS
+  Remove a Curl_Type object from a Curl_Multi_Type
+
+ USAGE
+  curl_multi_remove_handle (Curl_Multi_Type m, Curl_Type c)
+
+ DESCRIPTION
+  This function removes the specified Curl_Type object from
+  the Curl_Multi_Type object.  For more information, see the
+  documentation (http://curl.haxx.se/libcurl/c/curl_multi_remove_handle.html) for the
+  corresponding cURL (http://curl.haxx.se/libcurl/) library function.
+
+ SEE ALSO
+  curl_multi_add_handle, curl_multi_new, curl_multi_perform
+
+--------------------------------------------------------------
+
+curl_multi_add_handle
+
+ SYNOPSIS
+  Add a Curl_Type object to a Curl_Multi_Type
+
+ USAGE
+  curl_multi_add_handle
+
+ DESCRIPTION
+  This function adds the specified Curl_Type object to
+  the Curl_Multi_Type object.  For more information, see the
+  documentation (http://curl.haxx.se/libcurl/c/curl_multi_remove_handle.html) for the
+  corresponding cURL (http://curl.haxx.se/libcurl/) library function.
+
+ SEE ALSO
+  curl_multi_remove_handle, curl_multi_new, curl_multi_perform
+
+--------------------------------------------------------------
+
+curl_multi_close
+
+ SYNOPSIS
+  Close a Curl_Multi_Type object
+
+ USAGE
+  curl_multi_close (Curl_Multi_Type m)
+
+ DESCRIPTION
+  This function is a wrapper around the curl_multi_cleanup (http://curl.haxx.se/libcurl/c/curl_multi_cleanup.html)
+  cURL (http://curl.haxx.se/libcurl/) library function.   Any Curl_Multi_Type objects
+  associated with the specified Curl_Multi_Type object will be
+  removed from it.
+
+ SEE ALSO
+  curl_multi_new, curl_multi_remove_handle, curl_multi_info_read
+
+--------------------------------------------------------------
+
+curl_multi_info_read
+
+ SYNOPSIS
+  Get information about a Curl_Multi_Type transfer
+
+ USAGE
+  Curl_Type curl_multi_info_read (Curl_Multi_Type m [,Ref_Type info])
+
+ DESCRIPTION
+  This function retrieves information from the specified
+  Curl_Multi_Type object about an individual completed
+  transfer by one of its associated Curl_Type objects.  If all
+  of the associated Curl_Type objects are still being
+  processed, the function will return NULL.  Otherwise it returns the
+  completed Curl_Type object.  If an optional Ref_Type
+  parameter is passed to the function, then upon return the
+  the associated variable be set to an integer representing the
+  completion status of the Curl_Type object.  If the
+  completion status is 0, then the transfer was successful, otherwise
+  the individual transfer failed and the completion status gives the
+  error code associated with the transfer.  More infomation about the
+  transfer may be obtained by calling the `curl_get_info' function.
+
+ EXAMPLE
+  The `curl_multi_info_read' function should be called after a
+  call to `curl_multi_perform' has indicated that a transfer has
+  taken place.  The following example repeatedly calls
+  `curl_multi_info_read' until it returns NULL.  Each time
+  through the loop, the completed Curl_Type object is removed
+  from the Curl_Multi_Type object.
+
+        while (c = curl_multi_info_read (m, &status), c!=NULL)
+          {
+             curl_multi_remove_handle (m, c);
+             url = curl_get_url (c);
+             if (status == 0)
+               vmessage ("Retrieved %s", url);
+             else
+               vmessage ("Unable to retrieve %s", url);
+          }
+
+
+ SEE ALSO
+  curl_multi_perform, curl_multi_remove_handle, curl_get_info
+
+--------------------------------------------------------------
+
+curl_get_url
+
+ SYNOPSIS
+  Get the URL associated with a Curl_Type object
+
+ USAGE
+  String_Type curl_get_url (Curl_Type c)
+
+ DESCRIPTION
+  This function returns the name of the URL that was used to
+  instantiate the specified Curl_Type object.
+
+ SEE ALSO
+  curl_new, curl_get_info
+
+--------------------------------------------------------------
+
+curl_multi_length
+
+ SYNOPSIS
+  Get the number of Curl_Type objects in a Curl_Multi_Type
+
+ USAGE
+  Int_Type curl_multi_length (Curl_Multi_Type m)
+
+ DESCRIPTION
+  This function returns the number of Curl_Type objects
+  contained in the specified Curl_Multi_Type object.
+
+ SEE ALSO
+  curl_multi_remove_handle, curl_multi_add_handle
+
+--------------------------------------------------------------

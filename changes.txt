@@ -1,0 +1,10 @@
+Changes since 0.1.1
+1. src/curl-module.c: Add #ifdef CURLOPT_SOURCE_* since these
+   constants are not always defined.
+
+Changes since 0.1.0
+1. src/Makefile.in: Create the help directory if it does not already
+   exist. Paul Boekholt (p.boekholt at hetnet, nl).
+2. autoconf/configure.ac: remove call to JD_SET_RPATH
+3. added the translate script to the demo directory.
+
