@@ -70,27 +70,6 @@ private define lookup_translation (from, to)
    throw NotImplementedError, "Translating from $from to $to is not supported"$;
 }
 
-   
-private define make_encode_table ()
-{
-   variable table = array_map (String_Type, &sprintf, ("%%%02X", [0:255]));
-   variable ok = [['A':'Z'], ['a':'z'], ['0':'9'], '.', '-', '*', '_', '/', '~'];
-   table[ok] = array_map (String_Type, &char, ok);
-   table[' '] = "+";
-   return table;
-}
-private variable Encode_Table = make_encode_table ();
-
-private define encode (text)
-{
-   variable len = strlen (text);
-   variable new_text = String_Type[len];
-   variable i;
-   _for i (0, len-1, 1)
-     new_text[i] =  Encode_Table[text[i]];
-   return strjoin (new_text, "");
-}
-
 private define parse_output (str)
 {
    (str,) = strreplace (str, "\n", "\x01", strbytelen (str));
@@ -119,8 +98,9 @@ private define write_callback (vp, data)
 define babelfish (from, to, text)
 {
    variable c = curl_new ("http://babelfish.altavista.com/babelfish/tr?il=en");
+   variable in_str = curl_easy_escape(c, text);
    variable postdata = 
-     strcat ("doit=done&urltext=", text, 
+     strcat ("doit=done&urltext=", in_str,
 	     "&lp=", lookup_translation (from, to),
 	     "&Submit=Translate", "&enc=utf8");
 
@@ -179,7 +159,7 @@ define slsh_main ()
 	text = "";
 	variable line;
 	while (-1 != fgets (&line, stdin))
-	  text = strcat (text, encode (line));
+	  text = strcat (text, line);
      }
    message (babelfish (lang_in, lang_out, text));
 }
