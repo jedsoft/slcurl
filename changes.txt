@@ -5,6 +5,8 @@ Changes since 0.1.2
 3. demo/translate: Modified to use curl_easy_escape (Brian McQueen).
 4. src/curl-module.c: CURL_NETRC_REQUIRED had the wrong value (Paul
    Boekholt).
+5. src/curl-module.c: Added the CURLE_* constants and curl_easy_strerror
+   to convert these to their string representations.
 
 Changes since 0.1.1
 1. src/curl-module.c: Add #ifdef CURLOPT_SOURCE_* since these

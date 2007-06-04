@@ -230,6 +230,42 @@ curl_close
 
 --------------------------------------------------------------
 
+curl_easy_strerror
+
+ SYNOPSIS
+  Get the string representation for a curl error code
+
+ USAGE
+  String_Type curl_easy_strerror (errcode)
+
+ DESCRIPTION
+  This function is a wrapper around the curl_easy_strerror (http://curl.haxx.se/libcurl/c/curl_easy_strerror.html)
+  cURL (http://curl.haxx.se/libcurl/) library function.  See its
+  documentation (http://curl.haxx.se/libcurl/c/curl_easy_strerr.html) for more information.
+
+ SEE ALSO
+  curl_perform, curl_multi_info_read, curl_multi_perform
+
+--------------------------------------------------------------
+
+curl_strerror
+
+ SYNOPSIS
+  Get the string representation for a curl error code
+
+ USAGE
+  String_Type curl_strerror (errcode)
+
+ DESCRIPTION
+  This function is a wrapper around the curl_easy_strerror (http://curl.haxx.se/libcurl/c/curl_easy_strerror.html)
+  cURL (http://curl.haxx.se/libcurl/) library function.  See its
+  documentation (http://curl.haxx.se/libcurl/c/curl_easy_strerr.html) for more information.
+
+ SEE ALSO
+  curl_perform, curl_multi_info_read, curl_multi_perform
+
+--------------------------------------------------------------
+
 curl_multi_new
 
  SYNOPSIS
@@ -364,7 +400,8 @@ curl_multi_info_read
              if (status == 0)
                vmessage ("Retrieved %s", url);
              else
-               vmessage ("Unable to retrieve %s", url);
+               vmessage ("Unable to retrieve %s: Reason %s",
+                          url, curl_strerr (status));
           }
 
 

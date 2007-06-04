@@ -173,6 +173,26 @@
 \seealso{curl_new}
 \done
 
+\function{curl_easy_strerror}
+\synopsis{Get the string representation for a curl error code}
+\usage{String_Type curl_easy_strerror (errcode)}
+\description
+  This function is a wrapper around the \curlapi{curl_easy_strerror}
+  \cURL library function.  See \curlapi{curl_easy_strerr}{its
+  documentation} for more information.
+\seealso{curl_perform, curl_multi_info_read, curl_multi_perform}
+\done
+
+\function{curl_strerror}
+\synopsis{Get the string representation for a curl error code}
+\usage{String_Type curl_strerror (errcode)}
+\description
+  This function is a wrapper around the \curlapi{curl_easy_strerror}
+  \cURL library function.  See \curlapi{curl_easy_strerr}{its
+  documentation} for more information.
+\seealso{curl_perform, curl_multi_info_read, curl_multi_perform}
+\done
+
 \function{curl_multi_new}
 \synopsis{Instantiate a new Curl_Multi_Type object}
 \usage{Curl_Multi_Type curl_multi_new ()}
@@ -261,8 +281,9 @@
              url = curl_get_url (c);
              if (status == 0)
                vmessage ("Retrieved %s", url);
-             else 
-               vmessage ("Unable to retrieve %s", url);
+             else
+               vmessage ("Unable to retrieve %s: Reason %s", 
+                          url, curl_strerr (status));
           }
 #v-
 \seealso{curl_multi_perform, curl_multi_remove_handle, curl_get_info}
