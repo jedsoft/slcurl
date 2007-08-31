@@ -7,6 +7,7 @@ Changes since 0.1.2
    Boekholt).
 5. src/curl-module.c: Added the CURLE_* constants and curl_easy_strerror
    to convert these to their string representations.
+6. autoconf/aclocal.m4: CYGWIN updates
 
 Changes since 0.1.1
 1. src/curl-module.c: Add #ifdef CURLOPT_SOURCE_* since these

@@ -42,6 +42,7 @@ RPATH		= @RPATH@
 #---------------------------------------------------------------------------
 INSTALL		= @INSTALL@
 INSTALL_DATA	= @INSTALL_DATA@
+INSTALL_MODULE	= @INSTALL_MODULE@
 MKINSDIR	= ../autoconf/mkinsdir.sh
 RM		= rm -f
 LN		= ln -s
@@ -84,8 +85,8 @@ install_modules:
 	do \
 		Y=$$X.$(MODULE_VERSION); \
 		YDEST=$(DEST_MODULE_INSTALL_DIR)/$$Y; \
-		echo $(INSTALL_DATA) $$X $$YDEST; \
-		$(INSTALL_DATA) $$X $$YDEST; \
+		echo $(INSTALL_MODULE) $$X $$YDEST; \
+		$(INSTALL_MODULE) $$X $$YDEST; \
 		if [ "$$?" != "0" ]; then \
 		  exit 1; \
 		fi; \
