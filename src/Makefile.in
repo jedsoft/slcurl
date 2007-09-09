@@ -7,16 +7,18 @@ MODULES = curl-module.so
 SL_FILES = curl.sl babelfish.sl
 HLP_FILES = ../doc/help/curl.hlp
 MODULE_VERSION	= `./mkversion.sh`
-
+DOC_FILES = ../doc/text/curl.txt
+DEMO_FILES = ../demo/translate
 #---------------------------------------------------------------------------
 # Installation Directories
 #---------------------------------------------------------------------------
 prefix = @prefix@
 exec_prefix = @exec_prefix@
-datarootdir = $(exec_prefix)/share
+datarootdir = @datarootdir@
 MODULE_INSTALL_DIR = @MODULE_INSTALL_DIR@
 SL_FILES_INSTALL_DIR = @SL_FILES_INSTALL_DIR@
 HLP_FILES_INSTALL_DIR = $(SL_FILES_INSTALL_DIR)/help
+DOC_FILES_INSTALL_DIR = $(datarootdir)/doc/slang-curl
 
 #---------------------------------------------------------------------------
 # C Compiler to create a shared library
@@ -54,6 +56,7 @@ DESTDIR =
 DEST_MODULE_INSTALL_DIR = $(DESTDIR)$(MODULE_INSTALL_DIR)
 DEST_SL_FILES_INSTALL_DIR = $(DESTDIR)$(SL_FILES_INSTALL_DIR)
 DEST_HLP_FILES_INSTALL_DIR = $(DESTDIR)$(HLP_FILES_INSTALL_DIR)
+DEST_DOC_FILES_INSTALL_DIR = $(DESTDIR)$(DOC_FILES_INSTALL_DIR)
 #---------------------------------------------------------------------------
 LIBS = $(SLANG_LIB) $(MODULE_LIBS) $(RPATH) $(DL_LIB) -lm
 INCS = $(SLANG_INC) $(CURL_INC)
@@ -80,7 +83,9 @@ install_directories:
 	$(MKINSDIR) $(DEST_MODULE_INSTALL_DIR)
 	$(MKINSDIR) $(DEST_SL_FILES_INSTALL_DIR)
 	$(MKINSDIR) $(DEST_HLP_FILES_INSTALL_DIR)
-
+	$(MKINSDIR) $(DEST_DOC_FILES_INSTALL_DIR)
+	$(MKINSDIR) $(DEST_DOC_FILES_INSTALL_DIR)/examples/
+#
 install_modules:
 	@for X in $(MODULES); \
 	do \
@@ -94,7 +99,7 @@ install_modules:
 		$(RM) $(DEST_MODULE_INSTALL_DIR)/$$X; \
 		$(LN) $$Y $(DEST_MODULE_INSTALL_DIR)/$$X; \
 	done
-
+#
 install_slfiles:
 	@for X in $(SL_FILES); \
 	do \
@@ -104,7 +109,7 @@ install_slfiles:
 		  exit 1; \
 		fi; \
 	done
-
+#
 install_hlpfiles:
 	@for X in $(HLP_FILES); \
 	do \
@@ -114,8 +119,27 @@ install_hlpfiles:
 		  exit 1; \
 		fi; \
 	done
-
-install: all install_directories install_modules install_slfiles install_hlpfiles
+#
+install_docfiles:
+	@for X in $(DOC_FILES); \
+	do \
+		echo $(INSTALL_DATA) $$X $(DEST_DOC_FILES_INSTALL_DIR); \
+		$(INSTALL_DATA) $$X $(DEST_DOC_FILES_INSTALL_DIR); \
+		if [ "$$?" != "0" ]; then \
+		  exit 1; \
+		fi; \
+	done
+	@for X in $(DEMO_FILES); \
+	do \
+		echo $(INSTALL) $$X $(DEST_DOC_FILES_INSTALL_DIR)/examples/; \
+		$(INSTALL) $$X $(DEST_DOC_FILES_INSTALL_DIR)/examples/; \
+		if [ "$$?" != "0" ]; then \
+		  exit 1; \
+		fi; \
+	done
+#
+install: all install_directories install_modules install_slfiles \
+ install_hlpfiles install_docfiles
 
 clean:
 	-/bin/rm -f $(MODULES) *~ \#*

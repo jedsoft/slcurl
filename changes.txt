@@ -9,6 +9,7 @@ Changes since 0.1.2
    to convert these to their string representations.
 6. autoconf/aclocal.m4: CYGWIN updates
 7. src/Makefile.in: added datarootdir definition
+8. src/Makefile.in: Add documentation install targets
 
 Changes since 0.1.1
 1. src/curl-module.c: Add #ifdef CURLOPT_SOURCE_* since these
