@@ -1,6 +1,6 @@
 /* -*- mode: C; mode: fold; -*- */
 /*
-Copyright (C) 2005 John E. Davis
+Copyright (C) 2005, 2006, 2007 John E. Davis
 
 This file is part of the S-Lang Curl Module
 
@@ -31,6 +31,9 @@ USA.
 SLANG_MODULE(curl);
 #include "version.h"
 
+/* Unfortunately symbols such as CURLOPT_FTP_ACCOUNT are not macros and the 
+ * only way to test for their existence is through the version number. Sigh.
+ */
 #define MAKE_CURL_VERSION(a,b,c) (((a)<<16) + ((b)<<8) + (c))
 #define CURL_VERSION_GE(a,b,c) \
    (LIBCURL_VERSION_NUM >= MAKE_CURL_VERSION((a),(b),(c)))
@@ -649,7 +652,6 @@ static int do_setopt (Easy_Type *ez, CURLoption opt, int nargs)
 	/* FTP options */
       case CURLOPT_FTPPORT:
 	return set_string_opt (ez, opt, nargs);
-
       case CURLOPT_QUOTE:	       /* FIXME: linked list */
 	return set_strlist_opt (ez, opt, nargs, &ez->quote);
       case CURLOPT_POSTQUOTE:
@@ -668,30 +670,24 @@ static int do_setopt (Easy_Type *ez, CURLoption opt, int nargs)
       case CURLOPT_FTP_SSL:
 	return set_long_opt (ez, opt, nargs, 0, 0L);   /* FIXME: specific values */
 
-#ifdef CURLOPT_SOURCE_URL
+#if CURL_VERSION_GE(7,14,0)
       case CURLOPT_SOURCE_URL:
 	return set_string_opt (ez, opt, nargs);
 #endif
-#ifdef CURLOPT_SOURCE_USERPWD
       case CURLOPT_SOURCE_USERPWD:
 	return set_string_opt (ez, opt, nargs);
-#endif
-#ifdef CURLOPT_SOURCE_QUOTE
+#if CURL_VERSION_GE(7,14,0)
       case CURLOPT_SOURCE_QUOTE:
 	return set_strlist_opt (ez, opt, nargs, &ez->source_quote);
 #endif
-#ifdef CURLOPT_SOURCE_PREQUOTE
       case CURLOPT_SOURCE_PREQUOTE:
 	return set_strlist_opt (ez, opt, nargs, &ez->source_prequote);
-#endif
-#ifdef CURLOPT_SOURCE_POSTQUOTE
       case CURLOPT_SOURCE_POSTQUOTE:
 	return set_strlist_opt (ez, opt, nargs, &ez->source_postquote);
-#endif
-
+#if CURL_VERSION_GE(7,14,0)
       case CURLOPT_FTP_ACCOUNT:
 	return set_string_opt (ez, opt, nargs);
-
+#endif
 	/* protocol options */
       case CURLOPT_TRANSFERTEXT:
       case CURLOPT_CRLF:
@@ -1646,22 +1642,18 @@ static SLang_IConstant_Type Module_IConstants [] =
    MAKE_ICONSTANT("CURLOPT_FTP_CREATE_MISSING_DIRS", CURLOPT_FTP_CREATE_MISSING_DIRS),
    MAKE_ICONSTANT("CURLOPT_FTP_RESPONSE_TIMEOUT", CURLOPT_FTP_RESPONSE_TIMEOUT),
    MAKE_ICONSTANT("CURLOPT_FTP_SSL", CURLOPT_FTP_SSL),
-#ifdef CURLOPT_SOURCE_URL
+#if CURL_VERSION_GE(7,14,0)
    MAKE_ICONSTANT("CURLOPT_SOURCE_URL", CURLOPT_SOURCE_URL),
 #endif
-#ifdef CURLOPT_SOURCE_USERPWD
    MAKE_ICONSTANT("CURLOPT_SOURCE_USERPWD", CURLOPT_SOURCE_USERPWD),
-#endif
-#ifdef CURLOPT_SOURCE_QUOTE
+#if CURL_VERSION_GE(7,14,0)
    MAKE_ICONSTANT("CURLOPT_SOURCE_QUOTE", CURLOPT_SOURCE_QUOTE),
 #endif
-#ifdef CURLOPT_SOURCE_PREQUOTE
    MAKE_ICONSTANT("CURLOPT_SOURCE_PREQUOTE", CURLOPT_SOURCE_PREQUOTE),
-#endif
-#ifdef CURLOPT_SOURCE_POSTQUOTE
    MAKE_ICONSTANT("CURLOPT_SOURCE_POSTQUOTE", CURLOPT_SOURCE_POSTQUOTE),
-#endif
+#if CURL_VERSION_GE(7,14,0)
    MAKE_ICONSTANT("CURLOPT_FTP_ACCOUNT", CURLOPT_FTP_ACCOUNT),
+#endif
    MAKE_ICONSTANT("CURLOPT_TRANSFERTEXT", CURLOPT_TRANSFERTEXT),
    MAKE_ICONSTANT("CURLOPT_CRLF", CURLOPT_CRLF),
    MAKE_ICONSTANT("CURLOPT_RANGE", CURLOPT_RANGE),
@@ -1810,8 +1802,9 @@ static SLang_IConstant_Type Module_IConstants [] =
    MAKE_ICONSTANT("CURLE_FTP_SSL_FAILED", CURLE_FTP_SSL_FAILED),
    MAKE_ICONSTANT("CURLE_SEND_FAIL_REWIND", CURLE_SEND_FAIL_REWIND),
    MAKE_ICONSTANT("CURLE_SSL_ENGINE_INITFAILED", CURLE_SSL_ENGINE_INITFAILED),
+#if CURL_VERSION_GE(7,14,0)
    MAKE_ICONSTANT("CURLE_LOGIN_DENIED", CURLE_LOGIN_DENIED),
-   
+#endif
    SLANG_END_ICONST_TABLE
 };
 

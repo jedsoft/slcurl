@@ -1,3 +1,8 @@
+Changes since 0.2.0
+1. src/curl-module.c: removed "ifdef"s from the code and replaced them
+   by tests against the curl version.  The reason for this is that
+   what appear to be macros are actually enums.
+
 Changes since 0.1.2
 1. src/curl-module.c: Added curl_easy_escape/unescape intrinsics
    (Brian McQueen mcqueenorama at gmail, com)
