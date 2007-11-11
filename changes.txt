@@ -4,6 +4,8 @@ Changes since 0.2.0
    what appear to be macros are actually enums.
 2. src/curl-module.c: A couple of constants were defined with a
    trailing space.
+3. src/curl-module.c: Several symbols disappeared in 7.16.0.  Enums
+   are evil.
 
 Changes since 0.1.2
 1. src/curl-module.c: Added curl_easy_escape/unescape intrinsics
