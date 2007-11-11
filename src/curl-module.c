@@ -37,6 +37,32 @@ SLANG_MODULE(curl);
 #define MAKE_CURL_VERSION(a,b,c) (((a)<<16) + ((b)<<8) + (c))
 #define CURL_VERSION_GE(a,b,c) \
    (LIBCURL_VERSION_NUM >= MAKE_CURL_VERSION((a),(b),(c)))
+#define CURL_VERSION_LT(a,b,c) \
+   (LIBCURL_VERSION_NUM < MAKE_CURL_VERSION((a),(b),(c)))
+
+/* Unfortunately symbols appear and disappear between various curl releases,
+ * and because those symbols are enums, hacks such as the following are
+ * necessary.  This is why enums should not be used in this manner.
+ */
+#if CURL_VERSION_LT(7,16,0)
+# define HAVE_CURLOPT_PREQUOTE
+# define HAVE_CURLOPT_SOURCE_PREQUOTE
+# define HAVE_CURLOPT_POSTQUOTE
+# define HAVE_CURLOPT_SOURCE_POSTQUOTE
+# define HAVE_CURLOPT_SOURCE_USERPWD
+# define HAVE_CURLOPT_PREQUOTE
+# define HAVE_CURLOPT_USERPWD
+#endif
+
+#if CURL_VERSION_GE(7,14,0)
+# define HAVE_CURLOPT_FTP_ACCOUNT
+#endif
+
+#if CURL_VERSION_GE(7,14,0) && CURL_VERSION_LT(7,16,0)
+# define HAVE_CURLOPT_SOURCE_QUOTE
+# define HAVE_CURLOPT_SOURCE_URL
+#endif
+  
 
 static int Curl_Error = 0;
 static SLtype Easy_Type_Id = 0;
@@ -588,7 +614,9 @@ static int do_setopt (Easy_Type *ez, CURLoption opt, int nargs)
 	return set_long_opt (ez, opt, nargs, 0, 0L);   /* FIXME */
 
       case CURLOPT_NETRC_FILE:
+#ifdef HAVE_CURLOPT_USERPWD
       case CURLOPT_USERPWD:
+#endif
       case CURLOPT_PROXYUSERPWD:
 	return set_string_opt (ez, opt, nargs);
 
@@ -654,11 +682,14 @@ static int do_setopt (Easy_Type *ez, CURLoption opt, int nargs)
 	return set_string_opt (ez, opt, nargs);
       case CURLOPT_QUOTE:	       /* FIXME: linked list */
 	return set_strlist_opt (ez, opt, nargs, &ez->quote);
+#ifdef HAVE_CURLOPT_POSTQUOTE
       case CURLOPT_POSTQUOTE:
 	return set_strlist_opt (ez, opt, nargs, &ez->postquote);
+#endif
+#ifdef HAVE_CURLOPT_PREQUOTE
       case CURLOPT_PREQUOTE:
 	return set_strlist_opt (ez, opt, nargs, &ez->prequote);
-
+#endif
       case CURLOPT_FTPLISTONLY:
       case CURLOPT_FTPAPPEND:
       case CURLOPT_FTP_USE_EPRT:
@@ -670,21 +701,27 @@ static int do_setopt (Easy_Type *ez, CURLoption opt, int nargs)
       case CURLOPT_FTP_SSL:
 	return set_long_opt (ez, opt, nargs, 0, 0L);   /* FIXME: specific values */
 
-#if CURL_VERSION_GE(7,14,0)
+#ifdef HAVE_CURLOPT_SOURCE_URL
       case CURLOPT_SOURCE_URL:
 	return set_string_opt (ez, opt, nargs);
 #endif
+#ifdef HAVE_CURLOPT_SOURCE_USERPWD
       case CURLOPT_SOURCE_USERPWD:
 	return set_string_opt (ez, opt, nargs);
-#if CURL_VERSION_GE(7,14,0)
+#endif
+#ifdef HAVE_CURLOPT_SOURCE_QUOTE
       case CURLOPT_SOURCE_QUOTE:
 	return set_strlist_opt (ez, opt, nargs, &ez->source_quote);
 #endif
+#ifdef HAVE_CURLOPT_SOURCE_PREQUOTE
       case CURLOPT_SOURCE_PREQUOTE:
 	return set_strlist_opt (ez, opt, nargs, &ez->source_prequote);
+#endif
+#ifdef HAVE_CURLOPT_SOURCE_POSTQUOTE
       case CURLOPT_SOURCE_POSTQUOTE:
 	return set_strlist_opt (ez, opt, nargs, &ez->source_postquote);
-#if CURL_VERSION_GE(7,14,0)
+#endif
+#ifdef HAVE_CURLOPT_FTP_ACCOUNT
       case CURLOPT_FTP_ACCOUNT:
 	return set_string_opt (ez, opt, nargs);
 #endif
@@ -1633,8 +1670,12 @@ static SLang_IConstant_Type Module_IConstants [] =
    MAKE_ICONSTANT("CURLOPT_HTTP_VERSION", CURLOPT_HTTP_VERSION),
    MAKE_ICONSTANT("CURLOPT_FTPPORT", CURLOPT_FTPPORT),
    MAKE_ICONSTANT("CURLOPT_QUOTE", CURLOPT_QUOTE),
+#ifdef HAVE_CURLOPT_POSTQUOTE
    MAKE_ICONSTANT("CURLOPT_POSTQUOTE", CURLOPT_POSTQUOTE),
+#endif
+#ifdef HAVE_CURLOPT_PREQUOTE
    MAKE_ICONSTANT("CURLOPT_PREQUOTE", CURLOPT_PREQUOTE),
+#endif
    MAKE_ICONSTANT("CURLOPT_FTPLISTONLY", CURLOPT_FTPLISTONLY),
    MAKE_ICONSTANT("CURLOPT_FTPAPPEND", CURLOPT_FTPAPPEND),
    MAKE_ICONSTANT("CURLOPT_FTP_USE_EPRT", CURLOPT_FTP_USE_EPRT),
@@ -1642,16 +1683,22 @@ static SLang_IConstant_Type Module_IConstants [] =
    MAKE_ICONSTANT("CURLOPT_FTP_CREATE_MISSING_DIRS", CURLOPT_FTP_CREATE_MISSING_DIRS),
    MAKE_ICONSTANT("CURLOPT_FTP_RESPONSE_TIMEOUT", CURLOPT_FTP_RESPONSE_TIMEOUT),
    MAKE_ICONSTANT("CURLOPT_FTP_SSL", CURLOPT_FTP_SSL),
-#if CURL_VERSION_GE(7,14,0)
+#ifdef HAVE_CURLOPT_SOURCE_URL
    MAKE_ICONSTANT("CURLOPT_SOURCE_URL", CURLOPT_SOURCE_URL),
 #endif
+#ifdef HAVE_CURLOPT_SOURCE_USERPWD
    MAKE_ICONSTANT("CURLOPT_SOURCE_USERPWD", CURLOPT_SOURCE_USERPWD),
-#if CURL_VERSION_GE(7,14,0)
+#endif
+#ifdef HAVE_CURLOPT_SOURCE_QUOTE
    MAKE_ICONSTANT("CURLOPT_SOURCE_QUOTE", CURLOPT_SOURCE_QUOTE),
 #endif
+#ifdef HAVE_CURLOPT_SOURCE_PREQUOTE
    MAKE_ICONSTANT("CURLOPT_SOURCE_PREQUOTE", CURLOPT_SOURCE_PREQUOTE),
+#endif
+#ifdef HAVE_CURLOPT_SOURCE_POSTQUOTE
    MAKE_ICONSTANT("CURLOPT_SOURCE_POSTQUOTE", CURLOPT_SOURCE_POSTQUOTE),
-#if CURL_VERSION_GE(7,14,0)
+#endif
+#ifdef HAVE_CURLOPT_FTP_ACCOUNT
    MAKE_ICONSTANT("CURLOPT_FTP_ACCOUNT", CURLOPT_FTP_ACCOUNT),
 #endif
    MAKE_ICONSTANT("CURLOPT_TRANSFERTEXT", CURLOPT_TRANSFERTEXT),
