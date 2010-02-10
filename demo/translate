@@ -1,13 +1,15 @@
 #!/usr/bin/env slsh
 
-% Copyright (C) 2005 John E. Davis
+% Copyright (C) 2005-2010 John E. Davis
+
+% This file is part of the S-Lang Curl Module
 
 % This script is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
 % published by the Free Software Foundation; either version 2 of the
 % License, or (at your option) any later version.
 
-% This script is distributed in the hope that it will be useful,
+% The script is distributed in the hope that it will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 % General Public License for more details.
@@ -17,7 +19,10 @@
 % Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 % USA.  
 
+private variable Script_Version = "1.1.0";
+
 require ("curl");
+require ("cmdopt");
 
 private variable My_Language = "English";
 
@@ -70,22 +75,68 @@ private define lookup_translation (from, to)
    throw NotImplementedError, "Translating from $from to $to is not supported"$;
 }
 
+   
+private define make_encode_table ()
+{
+   variable table = array_map (String_Type, &sprintf, ("%%%02X", [0:255]));
+   variable ok = [['A':'Z'], ['a':'z'], ['0':'9'], '.', '-', '*', '_', '/', '~'];
+   table[ok] = array_map (String_Type, &char, ok);
+   table[' '] = "+";
+   return table;
+}
+private variable Encode_Table = make_encode_table ();
+
+private define encode (text)
+{
+   variable len = strbytelen (text);
+   variable new_text = String_Type[len];
+   variable i;
+   _for i (0, len-1, 1)
+     new_text[i] =  Encode_Table[text[i]];
+   return strjoin (new_text, "");
+}
+
 private define parse_output (str)
 {
+   %() = fputs (str, stdout);
+
    (str,) = strreplace (str, "\n", "\x01", strbytelen (str));
    % Look for TEXT in
-   % <td bgcolor=white class=s><div style=padding:10px;>TEXT</div>
-   variable start_re = "<td bgcolor=white class=s><div style=padding:10px;>";
+   % <div id="result"><div ...>TEXT</div>
+   variable start_re = "<div id=\"result\"><[^>]+>";
    variable end_re = "</div>";
    variable re = strcat (start_re, "\([^<]+\)"R, end_re);
-   
+
    variable n = string_match (str, re, 1);
    if (n == 0)
      return "";
    variable pos, match_len;
    (pos, match_len) = string_match_nth (1);
    str = substrbytes (str, pos+1, match_len);
-   (str,) = strreplace (str, "\x01", "\n", strbytelen (str));
+   variable len = strbytelen (str);
+   (str,) = strreplace (str, "\x01", "\n", len);
+   ifnot (is_substr (str, "&"))
+     return str;
+
+   variable substrs = strchop (str, '&', 0);
+   _for (0, length (substrs)-1, 1)
+     {
+	variable i, j;
+	i = ();
+	variable ss = substrs[i];
+	if (ss[0] == '#')
+	  {
+	     variable x;
+	     if (2 == sscanf (ss, "#%d;%n", &x, &j))
+	       {
+		  % Look for "#xyz;..."
+		  ss = char(x) + ss[[j:]];
+		  substrs[i] = ss;
+		  continue;
+	       }
+	  }
+     }
+   str = strjoin (substrs, "");
    return str;
 }
 
@@ -97,19 +148,27 @@ private define write_callback (vp, data)
 
 define babelfish (from, to, text)
 {
-   variable c = curl_new ("http://babelfish.altavista.com/babelfish/tr?il=en");
-   variable in_str = curl_easy_escape(c, text);
-   variable postdata = 
-     strcat ("doit=done&urltext=", in_str,
+   %() = fprintf (stderr, "Input: %s\n", text);
+   %variable c = curl_new ("http://babelfish.altavista.com/babelfish/tr?il=en");
+   variable c = curl_new ("http://babelfish.yahoo.com/translate_txt");
+   variable postdata =
+     strcat (%"ei=ISO-8859-1",
+	     "ei=UTF-8",
+	     "&doit=done",
+	     "&fr=bf-res",
+	     "&intl=1",
+	     "&tt=urltext",
+	     "&trtext=", text,
 	     "&lp=", lookup_translation (from, to),
-	     "&Submit=Translate", "&enc=utf8");
+	     "&btnTrTxt=Translate");
 
    curl_setopt (c, CURLOPT_POSTFIELDS, postdata);
    curl_setopt (c, CURLOPT_FOLLOWLOCATION);
    curl_setopt (c, CURLOPT_HTTPHEADER, 
 		["User-Agent: S-Lang cURL Module",
 		 "Content-Type: application/x-www-form-urlencoded",
-		 "Accept-Charset: ISO-8859-1,utf-8"
+		 %"Accept-Charset: ISO-8859-1,utf-8"
+		 "Accept-Charset: utf-8"
 		 ]);
    text = "";
    curl_setopt (c, CURLOPT_WRITEFUNCTION, &write_callback, &text);
@@ -120,31 +179,26 @@ define babelfish (from, to, text)
 
 private define usage ()
 {
-   () = fprintf (stderr, "Usage: %s [--to lang-out] lang-in [phrase|-]\n", __argv[0]);
+   variable pgm = path_basename (__argv[0]);
+   () = fprintf (stderr, "%s version %S\n", pgm, Script_Version);
+   () = fprintf (stderr, "Usage: %s [--to lang-out] lang-in [phrase|-]\n", pgm);
    exit (1);
 }
 
 define slsh_main ()
 {
    variable lang_out = My_Language, lang_in = NULL;
-   variable i = 1;
-   while (i < __argc)
-     {
-	variable arg = __argv[i];
-	i++;
-	if (arg == "--to")
-	  {
-	     if (i == __argc)
-	       usage ();
-	     lang_out = __argv[i];
-	     i++;
-	     continue;
-	  }
-	lang_in = arg;
-	break;
-     }
-   if (lang_in == NULL)
+
+   variable c = cmdopt_new ();
+   c.add ("to", &lang_out; type="str");
+   c.add ("h|help", &usage);
+   c.add ("v|version", &usage);
+   variable i = c.process (__argv, 1);
+
+   if (i + 1 > __argc)
      usage ();
+
+   lang_in = __argv[i]; i++;
 
    variable text = "-";
    if (i == __argc)
@@ -161,6 +215,6 @@ define slsh_main ()
 	while (-1 != fgets (&line, stdin))
 	  text = strcat (text, line);
      }
-   message (babelfish (lang_in, lang_out, text));
+   message (babelfish (lang_in, lang_out, encode (text)));
 }
 
