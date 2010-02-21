@@ -1,6 +1,9 @@
 Changes since 0.2.1
 1. demo/translate: Updated the script to reflect changes in the
    babelfish server.
+2. doc/tm/curl.tm: Documentation tweaks (Agathoklis D. Hatzimanikas).
+3. src/Makefile.in: Added support for my update_changes_version script
+   for the version number to track the changes.txt file.
 
 Changes since 0.2.0
 1. src/curl-module.c: removed "ifdef"s from the code and replaced them

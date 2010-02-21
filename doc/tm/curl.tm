@@ -107,7 +107,7 @@
     curl_setopt (Curl_Type obj, Int_Type op, ...);
     curl_close (Curl_Type obj);
 #v-
-  and allows a \slang script to transfer files is a
+  and allows a \slang script to transfer files in a
   simple synchronous manner.  For example, 
 #v+
      curl_perform (curl_new ("http://www.jedsoft.org/slang/"));
@@ -207,9 +207,9 @@
 
   The URLs in the above example are processed in a sequential manner.
   This example will be revisited in the context of the ``multi''
-  interface where it will be rewritten to perform a synchronous
+  interface where it will be rewritten to perform asynchronous
   downloads.
-  
+
 \chapter{The Multi Interface}
   
   The ``multi'' interface permits transfers to take place in an
@@ -249,7 +249,6 @@
  list of URLs.  Here it is again except written to use the ``multi''
  interface:
 #v+
-{
    urls = {"http://servantes.fictional.domain/don/quixote.html",
            "http://servantes.fictional.domain/sancho/panza.html"};
    fp_list = Assoc_Type[];

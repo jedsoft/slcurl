@@ -1600,6 +1600,7 @@ static SLang_Intrin_Fun_Type Module_Intrinsics [] =
    SLANG_END_INTRIN_FUN_TABLE
 };
 
+static char *Module_Version_String = MODULE_VERSION_STRING;
 static SLang_Intrin_Var_Type Module_Variables [] =
 {
    MAKE_VARIABLE("_curl_module_version_string", &Module_Version_String, SLANG_STRING_TYPE, 1),

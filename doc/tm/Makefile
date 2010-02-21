@@ -3,10 +3,9 @@
 # To create the SGML files, you will need to install the tm-utils
 # package.  See http://www.jedsoft.org/ for more information.
 #
-TMEXPAND = /aluche/d1/web/tm-dist/bin/tmexpand
+TMEXPAND = tmexpand
 SL2TM = sl2tm
-MACRODIR = /aluche/d1/web/tm-dist/macros
-TM2HLP = $(TMEXPAND) -I$(MACRODIR) -Mslhlp
+TM2HLP = $(TMEXPAND) -Mslhlp
 
 MODULE = curl
 AUTOGEN_TM = 
@@ -43,7 +42,7 @@ all: $(HTML_FILES) $(PDF_FILES) $(TXT_FILES) $(PS_FILES) $(HLP_FILE)
 text-files: $(TXT_FILES)
 #----- SGML Files -----------------------------------------------------------
 $(MODULE).sgml : $(MODULE).tm $(MODULE_DEPS)
-	$(TMEXPAND) -I$(MACRODIR) $(MODULE).tm $(MODULE).sgml
+	$(TMEXPAND) $(MODULE).tm $(MODULE).sgml
 #----- HTML Files -----------------------------------------------------------
 $(MODULE).html : $(MODULE).sgml
 	$(SGML2HTML) $(MODULE).sgml
@@ -69,7 +68,7 @@ $(MODULE).txt: $(MODULE).sgml
 #----------------------------------------------------------------------------
 help-files: $(HLP_FILE)
 $(HLP_FILE): $(HLPFUNS_TM) $(HLP_FILE_DEPS)
-	$(TMEXPAND) -I$(MACRODIR) -Mslhlp $(HLPFUNS_TM) $(HLP_FILE)
+	$(TMEXPAND) -Mslhlp $(HLPFUNS_TM) $(HLP_FILE)
 texclean:
 	-rm -f *.dvi *.log *.aux *.toc *.out
 clean: texclean
