@@ -19,7 +19,7 @@ HTML_FILES = $(MODULE).html
 TEX_FILES = $(MODULE).tex
 PS_FILES = $(MODULE).ps 
 PDF_FILES = $(MODULE).pdf
-HLP_FILE = $(MODULE).hlp
+HLP_FILES = $(MODULE).hlp babelfish.hlp
 
 SGML2LATEX = sgml2latex -p letter -o tex
 SGML2HTML = sgml2html
@@ -37,8 +37,8 @@ HELPDIR = ../help
 SUBDIRS = $(TEXTDIR) $(HTMLDIR) $(PSDIR) $(SGMLDIR) $(PDFDIR) $(HELPDIR)
 SRCDIR = `pwd`
 
-default: $(TXT_FILES) $(HLP_FILE)
-all: $(HTML_FILES) $(PDF_FILES) $(TXT_FILES) $(PS_FILES) $(HLP_FILE)
+default: $(TXT_FILES) $(HLP_FILES)
+all: $(HTML_FILES) $(PDF_FILES) $(TXT_FILES) $(PS_FILES) $(HLP_FILES)
 text-files: $(TXT_FILES)
 #----- SGML Files -----------------------------------------------------------
 $(MODULE).sgml : $(MODULE).tm $(MODULE_DEPS)
@@ -66,9 +66,11 @@ $(MODULE).ps : $(MODULE).tex texclean
 $(MODULE).txt: $(MODULE).sgml
 	$(SGML2TXT) $(MODULE).sgml
 #----------------------------------------------------------------------------
-help-files: $(HLP_FILE)
-$(HLP_FILE): $(HLPFUNS_TM) $(HLP_FILE_DEPS)
-	$(TMEXPAND) -Mslhlp $(HLPFUNS_TM) $(HLP_FILE)
+help-files: $(HLP_FILES)
+%.hlp: %.tm $(HLP_FILE_DEPS)
+	$(TMEXPAND) -Mslhlp $< $@
+babelfish.tm: ../../src/babelfish.sl
+	tm-strip $< > $@
 texclean:
 	-rm -f *.dvi *.log *.aux *.toc *.out
 clean: texclean
@@ -76,14 +78,14 @@ clean: texclean
 distclean: clean
 	-rm -f *.html *.ps $(HLP_FILE) $(TXT_FILES) $(TEX_FILES) $(SGML_FILES) $(PDF_FILES) $(AUTOGEN_TM)
 install-txt: $(TXT_FILES)
-	-mkdir ../text
-	-mv $(TXT_FILES) ../text
-install-help: $(HLP_FILE)
+	-mkdir $(TEXTDIR)
+	-mv $(TXT_FILES) $(TEXTDIR)
+install-help: $(HLP_FILES)
 	-mkdir -p $(HELPDIR)
-	-mv $(HLP_FILE) $(HELPDIR)
+	-mv $(HLP_FILES) $(HELPDIR)
 install-all: all install-help install-txt $(PS_FILES) $(PDF_FILES)
 	-mkdir -p $(HTMLDIR) $(PSDIR) $(PDFDIR)
 	-mv *.html $(HTMLDIR)
-	-mv $(PS_FILES) ../ps
-	-mv $(PDF_FILES) ../pdf
+	-mv $(PS_FILES) $(PSDIR)
+	-mv $(PDF_FILES) $(PDFDIR)
 install: install-txt install-help

@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 MODULES = curl-module.so
 SL_FILES = curl.sl babelfish.sl
-HLP_FILES = ../doc/help/curl.hlp
+HLP_FILES = ../doc/help/curl.hlp ../doc/help/babelfish.hlp
 MODULE_VERSION	= `./mkversion.sh`
 DOC_FILES = ../doc/text/curl.txt
 DEMO_FILES = ../demo/translate

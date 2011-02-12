@@ -17,65 +17,15 @@
 % You should have received a copy of the GNU General Public License
 % along with this library; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
-% USA.  
+% USA.
 
 private variable Script_Version = "1.1.0";
 
-require ("curl");
+require ("babelfish");
 require ("cmdopt");
 
 private variable My_Language = "English";
 
-private variable Supported_Translations = 
-  ["zh_en", "zt_en", "en_zh", "en_zt", "en_nl", "en_fr", "en_de", "en_el",
-   "en_it", "en_ja", "en_ko", "en_pt", "en_ru", "en_es", "nl_en", "nl_fr",
-   "fr_en", "fr_de", "fr_el", "fr_it", "fr_pt", "fr_nl", "fr_es", "de_en",
-   "de_fr", "el_en", "el_fr", "it_en", "it_fr", "ja_en", "ko_en", "pt_en",
-   "pt_fr", "ru_en", "es_en", "es_fr"];
-
-private variable Languages = Assoc_Type[String_Type];
-private define add_language (lang, desc)
-{
-   Languages[strlow(lang)] = strlow (desc);
-}
-add_language ("zh", "Chinese-simple");
-add_language ("zt", "Chinese-traditional");
-add_language ("en", "English");
-add_language ("nl", "Dutch");
-add_language ("fr", "French");
-add_language ("de", "German");
-add_language ("el", "Greek");
-add_language ("it", "Italian");
-add_language ("ja", "Japanese");
-add_language ("ko", "Korean");
-add_language ("pt", "Portugese");
-add_language ("ru", "Russian");
-add_language ("es", "Spanish");
-
-private define lookup_language (lang)
-{
-   lang = strlow (lang);
-   if (assoc_key_exists (Languages, lang))
-     return lang;
-   variable vals = assoc_get_values (Languages);
-   variable i = where (vals == lang);
-   if (length (i) == 0)
-     throw NotImplementedError, "Language $lang is unknown or unsupported"$;
-
-   return assoc_get_keys (Languages)[i[0]];
-}
-
-private define lookup_translation (from, to)
-{
-   variable trans = sprintf ("%s_%s", lookup_language (from), lookup_language(to));
-   
-   if (any (Supported_Translations == trans))
-     return trans;
-   
-   throw NotImplementedError, "Translating from $from to $to is not supported"$;
-}
-
-   
 private define make_encode_table ()
 {
    variable table = array_map (String_Type, &sprintf, ("%%%02X", [0:255]));
@@ -94,87 +44,6 @@ private define encode (text)
    _for i (0, len-1, 1)
      new_text[i] =  Encode_Table[text[i]];
    return strjoin (new_text, "");
-}
-
-private define parse_output (str)
-{
-   %() = fputs (str, stdout);
-
-   (str,) = strreplace (str, "\n", "\x01", strbytelen (str));
-   % Look for TEXT in
-   % <div id="result"><div ...>TEXT</div>
-   variable start_re = "<div id=\"result\"><[^>]+>";
-   variable end_re = "</div>";
-   variable re = strcat (start_re, "\([^<]+\)"R, end_re);
-
-   variable n = string_match (str, re, 1);
-   if (n == 0)
-     return "";
-   variable pos, match_len;
-   (pos, match_len) = string_match_nth (1);
-   str = substrbytes (str, pos+1, match_len);
-   variable len = strbytelen (str);
-   (str,) = strreplace (str, "\x01", "\n", len);
-   ifnot (is_substr (str, "&"))
-     return str;
-
-   variable substrs = strchop (str, '&', 0);
-   _for (0, length (substrs)-1, 1)
-     {
-	variable i, j;
-	i = ();
-	variable ss = substrs[i];
-	if (ss[0] == '#')
-	  {
-	     variable x;
-	     if (2 == sscanf (ss, "#%d;%n", &x, &j))
-	       {
-		  % Look for "#xyz;..."
-		  ss = char(x) + ss[[j:]];
-		  substrs[i] = ss;
-		  continue;
-	       }
-	  }
-     }
-   str = strjoin (substrs, "");
-   return str;
-}
-
-private define write_callback (vp, data)
-{
-   @vp = strcat (@vp, data);
-   return 0;
-}
-
-define babelfish (from, to, text)
-{
-   %() = fprintf (stderr, "Input: %s\n", text);
-   %variable c = curl_new ("http://babelfish.altavista.com/babelfish/tr?il=en");
-   variable c = curl_new ("http://babelfish.yahoo.com/translate_txt");
-   variable postdata =
-     strcat (%"ei=ISO-8859-1",
-	     "ei=UTF-8",
-	     "&doit=done",
-	     "&fr=bf-res",
-	     "&intl=1",
-	     "&tt=urltext",
-	     "&trtext=", text,
-	     "&lp=", lookup_translation (from, to),
-	     "&btnTrTxt=Translate");
-
-   curl_setopt (c, CURLOPT_POSTFIELDS, postdata);
-   curl_setopt (c, CURLOPT_FOLLOWLOCATION);
-   curl_setopt (c, CURLOPT_HTTPHEADER, 
-		["User-Agent: S-Lang cURL Module",
-		 "Content-Type: application/x-www-form-urlencoded",
-		 %"Accept-Charset: ISO-8859-1,utf-8"
-		 "Accept-Charset: utf-8"
-		 ]);
-   text = "";
-   curl_setopt (c, CURLOPT_WRITEFUNCTION, &write_callback, &text);
-   curl_perform (c);
-   text = parse_output (text);
-   return text;
 }
 
 private define usage ()
@@ -207,7 +76,7 @@ define slsh_main ()
 	  usage ();
      }
    else text = strjoin (__argv[[i:]], " ");
-   
+
    if (text == "-")
      {
 	text = "";

@@ -1,0 +1,28 @@
+babelfish
+
+ SYNOPSIS
+  Lookup an online translation by Yahoo! Babel Fish
+
+ USAGE
+  String_Type babelfish (String_Type lang_from, lang_to, text)
+
+ DESCRIPTION
+  The languages `lang_from' and `lang_to' can be from the
+  following list, but not all combinations are supported:
+
+     "zh" or "Chinese-simp"
+     "zt" or "Chinese-trad"
+     "nl" or "Dutch"
+     "en" or "English"
+     "fr" or "French"
+     "de" or "German"
+     "el" or "Greek"
+     "it" or "Italian"
+     "ja" or "Japanese"
+     "ko" or "Korean"
+     "pt" or "Portuguese"
+     "ru" or "Russian"
+     "es" or "Spanish"
+
+
+--------------------------------------------------------------
