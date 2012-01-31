@@ -57,7 +57,7 @@
 #d module#1 \tt{$1}
 #d file#1 \tt{$1}
 #d slang-documentation \
- \url{http://www.s-lang.org/doc/html/slang.html}{S-Lang documentation}
+ \url{http://www.jedsoft.org/slang/doc/html/slang.html}{S-Lang documentation}
 
 \linuxdoc
 \begin{\documentstyle}

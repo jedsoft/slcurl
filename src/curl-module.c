@@ -17,7 +17,7 @@ General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
-USA.  
+USA.
 */
 
 #include <stdio.h>
@@ -31,7 +31,7 @@ USA.
 SLANG_MODULE(curl);
 #include "version.h"
 
-/* Unfortunately symbols such as CURLOPT_FTP_ACCOUNT are not macros and the 
+/* Unfortunately symbols such as CURLOPT_FTP_ACCOUNT are not macros and the
  * only way to test for their existence is through the version number. Sigh.
  */
 #define MAKE_CURL_VERSION(a,b,c) (((a)<<16) + ((b)<<8) + (c))
@@ -62,7 +62,6 @@ SLANG_MODULE(curl);
 # define HAVE_CURLOPT_SOURCE_QUOTE
 # define HAVE_CURLOPT_SOURCE_URL
 #endif
-  
 
 static int Curl_Error = 0;
 static SLtype Easy_Type_Id = 0;
@@ -131,7 +130,7 @@ static void free_easy_type (Easy_Type *ez)
 
    if (ez->handle != NULL)
      curl_easy_cleanup (ez->handle);
-   
+
    if (ez->url != NULL)
      SLang_free_slstring (ez->url);
 
@@ -146,7 +145,7 @@ static void free_easy_type (Easy_Type *ez)
 
    if (ez->progress_callback != NULL) SLang_free_function (ez->progress_callback);
    if (ez->progress_data != NULL) SLang_free_anytype (ez->progress_data);
-   
+
    sp = ez->opt_strings;
    spmax = sp + NUM_OPT_STRINGS;
    while (sp < spmax)
@@ -164,7 +163,7 @@ static void free_easy_type (Easy_Type *ez)
    if (ez->source_prequote != NULL) curl_slist_free_all (ez->source_prequote);
    if (ez->source_postquote != NULL) curl_slist_free_all (ez->source_postquote);
 
-   SLfree ((char *) ez);	  
+   SLfree ((char *) ez);
 }
 
 static void throw_curl_error (CURLcode err, char *buf)
@@ -182,7 +181,7 @@ static void global_init (long *flagsp)
      return;
 
    flags &= CURL_GLOBAL_ALL;
-       
+
    if (0 != curl_global_init (flags))
      {
 	SLang_verror (SL_RunTime_Error, "curl_global_init failed");
@@ -197,7 +196,7 @@ static void global_cleanup (void)
    Initialized = 0;
 }
 
-static size_t write_function_internal (void *ptr, size_t size, size_t nmemb, 
+static size_t write_function_internal (void *ptr, size_t size, size_t nmemb,
 				       SLang_Name_Type *write_callback,
 				       SLang_Any_Type *write_data)
 {
@@ -260,12 +259,12 @@ static int progress_function (void *clientp, double dltotal, double dlnow, doubl
        || (-1 == SLexecute_function (ez->progress_callback))
        || (-1 == SLang_pop_int (&status)))
      status = -1;
-   
+
    return status;
 }
 
 /* slang: Bstring read_function (Object, num_bytes)
- * 
+ *
  *   If NULL returned, operation will be aborted.
  */
 static size_t read_function (void *ptr, size_t size, size_t nmemb, void *stream)
@@ -288,18 +287,18 @@ static size_t read_function (void *ptr, size_t size, size_t nmemb, void *stream)
      {
 	return CURL_READFUNC_ABORT;
      }
-   
+
    if (SLang_peek_at_stack () == SLANG_NULL_TYPE)
      {
 	(void) SLang_pop_null ();
 	return CURL_READFUNC_ABORT;
      }
-   
+
    if (-1 == SLang_pop_bstring (&bstr))
      {
 	return CURL_READFUNC_ABORT;
      }
-   
+
    if (NULL == (bytes = SLbstring_get_pointer (bstr, &bytes_read)))
      {
 	SLbstring_free (bstr);
@@ -308,9 +307,9 @@ static size_t read_function (void *ptr, size_t size, size_t nmemb, void *stream)
 
    if (bytes_read > bytes_requested)
      bytes_read = bytes_requested;
-   
+
    memcpy ((char *) ptr, bytes, bytes_read);
-   
+
    SLbstring_free (bstr);
    return bytes_read;
 }
@@ -341,7 +340,7 @@ static SLang_MMT_Type *pop_easy_type (Easy_Type **ezp, unsigned int flags)
 	*ezp = NULL;
 	return NULL;
      }
-   
+
    ez = (Easy_Type *)SLang_object_from_mmt (mmt);
    if (-1 == check_handle (ez, flags))
      {
@@ -351,19 +350,18 @@ static SLang_MMT_Type *pop_easy_type (Easy_Type **ezp, unsigned int flags)
    *ezp = ez;
    return mmt;
 }
-   
 
 static int set_long_opt (Easy_Type *ez, CURLoption opt, int nargs, int use_def, long val)
 {
    CURLcode status;
-   
+
    if ((nargs > 1)
        || ((nargs == 0) && (use_def == 0)))
      {
 	SLang_verror (SL_INVALID_PARM, "Expecting a single value for this cURL option");
 	return -1;
      }
-   
+
    if (nargs && (-1 == SLang_pop_long (&val)))
      return -1;
 
@@ -389,7 +387,7 @@ static int set_function_opt (Easy_Type *ez, CURLoption opt, CURLoption data_opt,
 	SLang_verror (SL_INVALID_PARM, "Expecting two arguments for this option");
 	return -1;
      }
-   
+
    if (NULL == (func = SLang_pop_function ()))
      return -1;
 
@@ -410,11 +408,11 @@ static int set_function_opt (Easy_Type *ez, CURLoption opt, CURLoption data_opt,
    if (NULL != *funcp)
      SLang_free_function (*funcp);
    *funcp = func;
-   
+
    if (NULL != *datap)
      SLang_free_anytype (*datap);
    *datap = data;
-   
+
    return 0;
 }
 
@@ -467,7 +465,7 @@ static int set_string_opt (Easy_Type *ez, CURLoption opt, int nargs)
    return ret;
 }
 
-static int set_strlist_opt (Easy_Type *ez, CURLoption opt, int nargs, 
+static int set_strlist_opt (Easy_Type *ez, CURLoption opt, int nargs,
 			    struct curl_slist **slistp)
 {
    struct curl_slist *slist = NULL;
@@ -478,7 +476,7 @@ static int set_strlist_opt (Easy_Type *ez, CURLoption opt, int nargs,
 	SLang_verror (SL_INVALID_PARM, "This option requires an array of strings");
 	return -1;
      }
-   
+
    if (nargs == 1)
      {
 	SLang_Array_Type *at;
@@ -488,7 +486,7 @@ static int set_strlist_opt (Easy_Type *ez, CURLoption opt, int nargs,
 	  return -1;
 	sp = (char **)at->data;
 	spmax = sp + at->num_elements;
-   
+
 	while (sp < spmax)
 	  {
 	     if (*sp != NULL)
@@ -506,7 +504,7 @@ static int set_strlist_opt (Easy_Type *ez, CURLoption opt, int nargs,
 	  }
 	SLang_free_array (at);
      }
-   
+
    if (*slistp != NULL)
      {
 	curl_slist_free_all (*slistp);
@@ -525,7 +523,6 @@ static int set_strlist_opt (Easy_Type *ez, CURLoption opt, int nargs,
    *slistp = slist;
    return 0;
 }
-
 
 static int do_setopt (Easy_Type *ez, CURLoption opt, int nargs)
 {
@@ -559,7 +556,7 @@ static int do_setopt (Easy_Type *ez, CURLoption opt, int nargs)
       case CURLOPT_DEBUGFUNCTION:
       case CURLOPT_SSL_CTX_FUNCTION:
 	break;
-	
+
 	/* data options */
       case CURLOPT_WRITEDATA:
 	/* return set_write_data_opt (ez, opt, CURLOPT_WRITEDATA, nargs); */
@@ -782,7 +779,7 @@ static int do_setopt (Easy_Type *ez, CURLoption opt, int nargs)
 
       case CURLOPT_CONNECTTIMEOUT:
 	return set_long_opt (ez, opt, nargs, 0, 0L);
-	
+
       case CURLOPT_IPRESOLVE:	       /* FIXME: specific values */
 	return set_long_opt (ez, opt, nargs, 0, 0L);
 
@@ -817,7 +814,7 @@ static int do_setopt (Easy_Type *ez, CURLoption opt, int nargs)
 
       case CURLOPT_KRB4LEVEL:
 	return set_string_opt (ez, opt, nargs);
-	
+
 	/* Misc */
       case CURLOPT_PRIVATE:	       /* FIXME: provide interface?? */
 	break;
@@ -828,7 +825,7 @@ static int do_setopt (Easy_Type *ez, CURLoption opt, int nargs)
 	/* Telnet Options */
       case CURLOPT_TELNETOPTIONS:      /* FIXME: linked list */
 	break;
-	
+
       default:
 	break;
      }
@@ -836,7 +833,6 @@ static int do_setopt (Easy_Type *ez, CURLoption opt, int nargs)
    return -1;
 }
 
-	
 static void setopt_intrin (void)
 {
    SLang_MMT_Type *mmt;
@@ -849,7 +845,7 @@ static void setopt_intrin (void)
 	SLang_verror (SL_USAGE_ERROR, "Usage: curl_setopt(curlobj, option, value)");
 	return;
      }
-   
+
    if (-1 == SLreverse_stack (nargs + 2))
      return;
 
@@ -861,7 +857,7 @@ static void setopt_intrin (void)
 	SLang_free_mmt (mmt);
 	return;
      }
-   
+
    (void) do_setopt (ez, (CURLoption)opt, nargs);
 
    SLang_free_mmt (mmt);
@@ -875,7 +871,7 @@ static void new_curl_intrin (char *url)
 
    if (NULL == (ez = (Easy_Type *) SLcalloc (1, sizeof (Easy_Type))))
      return;
-   
+
    if (NULL == (ez->handle = curl_easy_init ()))
      {
 	SLang_verror (SL_RunTime_Error, "curl_easy_init failed");
@@ -960,7 +956,6 @@ static void close_intrin (void)
    SLang_free_mmt (mmt);
 }
 
-   
 static void get_url_intrin (void)
 {
    SLang_MMT_Type *mmt;
@@ -968,7 +963,7 @@ static void get_url_intrin (void)
 
    if (NULL == (mmt = pop_easy_type (&ez, 0)))
      return;
-   
+
    (void) SLang_push_string (ez->url);
    SLang_free_mmt (mmt);
 }
@@ -982,7 +977,7 @@ static int push_slist (struct curl_slist *slist)
 
    if (slist == NULL)
      return SLang_push_null ();
-   
+
    num = 0;
    s = slist;
    while (s != NULL)
@@ -990,11 +985,11 @@ static int push_slist (struct curl_slist *slist)
 	num++;
 	s = s->next;
      }
-   
+
    at = SLang_create_array (SLANG_STRING_TYPE, 0, NULL, &num, 1);
    if (at == NULL)
      return -1;
-   
+
    data = (char **) at->data;
    s = slist;
    while (s != NULL)
@@ -1036,7 +1031,7 @@ static void get_info_intrin (void)
 	if (status == CURLE_OK)
 	  (void) SLang_push_string (str);
 	break;
-	
+
       case CURLINFO_RESPONSE_CODE:
       case CURLINFO_HTTP_CONNECTCODE:
       case CURLINFO_FILETIME:
@@ -1081,13 +1076,14 @@ static void get_info_intrin (void)
 	break;
 
       case CURLINFO_PRIVATE:
+	/* used internal to this module. */
+	/* drop */
       default:
-	SLang_verror (SL_INVALID_PARM, "Unknown of unsupported info type");
+	SLang_verror (SL_INVALID_PARM, "Unknown or unsupported info type");
 	status = 0;
 	break;
      }
-   
-   
+
    if (status != CURLE_OK)
      throw_curl_error (status, ez->errbuf);
 
@@ -1127,7 +1123,7 @@ static SLang_MMT_Type *pop_multi_type (Multi_Type **mp, unsigned int flags)
 	SLang_verror (SL_INVALID_PARM, "The Curl_Multi_Type is in an invalid state for this operation");
 	return NULL;
      }
-   
+
    ez = m->ez;
    while (ez != NULL)
      {
@@ -1163,7 +1159,7 @@ static int multi_remove_handle_internal (Multi_Type *m, Easy_Type *ez)
 static void multi_close_internal (Multi_Type *m)
 {
    Easy_Type *ez;
-   
+
    ez = m->ez;
    while (ez != NULL)
      {
@@ -1186,13 +1182,12 @@ static void free_multi_type (Multi_Type *m)
    SLfree ((char *) m);
 }
 
-
 static void multi_remove_handle (void)
 {
    Easy_Type *ez, *prev;
    SLang_MMT_Type *ez_mmt, *m_mmt;
    Multi_Type *m;
-   
+
    if (NULL == (ez_mmt = pop_easy_type (&ez, PERFORM_RUNNING)))
      return;
    if (NULL == (m_mmt = pop_multi_type (&m, PERFORM_RUNNING)))
@@ -1217,9 +1212,9 @@ static void multi_remove_handle (void)
      }
 
    (void) multi_remove_handle_internal (m, ez);
-   
+
    /* drop */
-   
+
    free_return:
    SLang_free_mmt (ez_mmt);
    SLang_free_mmt (m_mmt);
@@ -1229,7 +1224,7 @@ static void multi_close (void)
 {
    SLang_MMT_Type *mmt;
    Multi_Type *m;
-   
+
    if (NULL == (mmt = pop_multi_type (&m, PERFORM_RUNNING)))
      return;
 
@@ -1243,7 +1238,7 @@ static void multi_add_handle (void)
    SLang_MMT_Type *ez_mmt, *m_mmt;
    Multi_Type *m;
    CURLMcode status;
-   
+
    if (NULL == (ez_mmt = pop_easy_type (&ez, PERFORM_RUNNING)))
      return;
    if (NULL == (m_mmt = pop_multi_type (&m, PERFORM_RUNNING)))
@@ -1258,7 +1253,7 @@ static void multi_add_handle (void)
 	SLang_free_mmt (m_mmt);
 	return;
      }
-   
+
    status = curl_multi_add_handle (m->mhandle, ez->handle);
    if (status != CURLM_OK)
      {
@@ -1267,7 +1262,7 @@ static void multi_add_handle (void)
 	SLang_free_mmt (m_mmt);
 	return;
      }
-   
+
    ez->multi = m;
    ez->next = m->ez;
    m->ez = ez;
@@ -1302,7 +1297,7 @@ static int do_select_on_multi (Multi_Type *m, double dt)
 	throw_multi_error (status);
 	return -1;
      }
-   
+
    ret = select (max_fd + 1, &read_fds, &write_fds, &execpt_fds, &tv);
    if (ret == -1)
      {
@@ -1332,7 +1327,7 @@ static int multi_perform_intrin (void)
 
    if (NULL == (mmt = pop_multi_type (&m, PERFORM_RUNNING)))
      return -1;
-   
+
    ez = m->ez;
    if (ez == NULL)
      {
@@ -1362,17 +1357,17 @@ static int multi_perform_intrin (void)
 	  {
 	     if (0 != SLang_handle_interrupt ())
 	       break;
-	     
+
 	     continue;
 	  }
-	
+
 	if (status == CURLM_OK)
 	  break;
-	
+
 	throw_multi_error (status);
 	break;
      }
-   
+
    ez = m->ez;
    while (ez != NULL)
      {
@@ -1411,14 +1406,15 @@ static void multi_info_read (void)
 
 	if (msg->msg != CURLMSG_DONE)
 	  continue;
-	
-	status = curl_easy_getinfo (msg->easy_handle, CURLINFO_PRIVATE, &ez);
+
+	/* The Easy_Type object was set in the new_curl_intrin function */
+	status = curl_easy_getinfo (msg->easy_handle, CURLINFO_PRIVATE, (char **)&ez);
 	if ((status != CURLE_OK) || (ez == NULL))
 	  {
 	     throw_curl_error (status, "Internal cURL error");
 	     break;
 	  }
-	
+
 	if (ref != NULL)
 	  {
 	     int i = (int) msg->data.result;
@@ -1428,9 +1424,9 @@ static void multi_info_read (void)
 	(void) SLang_push_mmt (ez->mmt);
 	goto free_return;
      }
-   
+
    (void) SLang_push_null ();
-   
+
    free_return:
 
    if (ref != NULL)
@@ -1438,7 +1434,6 @@ static void multi_info_read (void)
    SLang_free_mmt (mmt);
 }
 
-   
 static void new_multi_intrin (void)
 {
    SLang_MMT_Type *mmt;
@@ -1446,7 +1441,7 @@ static void new_multi_intrin (void)
 
    if (NULL == (m = (Multi_Type *) SLcalloc (1, sizeof (Multi_Type))))
      return;
-   
+
    if (NULL == (m->mhandle = curl_multi_init ()))
      {
 	SLang_verror (Curl_Error, "curl_multi_init failed");
@@ -1472,14 +1467,13 @@ static int get_multi_length_intrin (void)
 
    if (NULL == (mmt = pop_multi_type (&m, 0)))
      return -1;
-   
+
    len = m->length;
    SLang_free_mmt (mmt);
    return len;
 }
 
 /*}}}*/
-
 
 static void escape_intrin (SLang_BString_Type *bstr)
 {
@@ -1492,7 +1486,7 @@ static void escape_intrin (SLang_BString_Type *bstr)
    if (NULL == (url = (char *) SLbstring_get_pointer (bstr, &len)))
      return;
 
-   if (NULL == (mmt = pop_easy_type (&ez, 0))) 
+   if (NULL == (mmt = pop_easy_type (&ez, 0)))
      return;
 
 #if CURL_VERSION_GE(7,15,4)
@@ -1525,7 +1519,7 @@ static void unescape_intrin (char *url)
    int outlength;
 #endif
 
-   if (NULL == (mmt = pop_easy_type (&ez, 0))) 
+   if (NULL == (mmt = pop_easy_type (&ez, 0)))
      return;
 
 #if CURL_VERSION_GE(7,15,4)
@@ -1569,7 +1563,6 @@ static char *easy_strerror_intrin (int *codep)
    return (char *) curl_easy_strerror ((CURLcode) *codep);
 }
 
-
 static SLang_Intrin_Fun_Type Module_Intrinsics [] =
 {
    MAKE_INTRINSIC_1("curl_new", new_curl_intrin, SLANG_VOID_TYPE, SLANG_STRING_TYPE),
@@ -1586,7 +1579,7 @@ static SLang_Intrin_Fun_Type Module_Intrinsics [] =
    MAKE_INTRINSIC_0("curl_multi_add_handle", multi_add_handle, SLANG_VOID_TYPE),
    MAKE_INTRINSIC_0("curl_multi_close", multi_close, SLANG_VOID_TYPE),
    MAKE_INTRINSIC_0("curl_multi_info_read", multi_info_read, SLANG_VOID_TYPE),
-   
+
    MAKE_INTRINSIC_I("curl_easy_strerror", easy_strerror_intrin, SLANG_STRING_TYPE),
    MAKE_INTRINSIC_I("curl_strerror", easy_strerror_intrin, SLANG_STRING_TYPE),
 
@@ -1596,7 +1589,7 @@ static SLang_Intrin_Fun_Type Module_Intrinsics [] =
    /* Local Additions */
    MAKE_INTRINSIC_0("curl_get_url", get_url_intrin, SLANG_VOID_TYPE),
    MAKE_INTRINSIC_0("curl_multi_length", get_multi_length_intrin, SLANG_INT_TYPE),
-   
+
    SLANG_END_INTRIN_FUN_TABLE
 };
 
@@ -1745,7 +1738,7 @@ static SLang_IConstant_Type Module_IConstants [] =
    MAKE_ICONSTANT("CURLOPT_PRIVATE", CURLOPT_PRIVATE),
    MAKE_ICONSTANT("CURLOPT_SHARE", CURLOPT_SHARE),
    MAKE_ICONSTANT("CURLOPT_TELNETOPTIONS", CURLOPT_TELNETOPTIONS),
-   
+
    MAKE_ICONSTANT("CURL_GLOBAL_ALL", CURL_GLOBAL_ALL),
    MAKE_ICONSTANT("CURL_GLOBAL_SSL", CURL_GLOBAL_SSL),
    MAKE_ICONSTANT("CURL_GLOBAL_WIN32", CURL_GLOBAL_WIN32),
@@ -1859,7 +1852,7 @@ static SLang_IConstant_Type Module_IConstants [] =
 static void destroy_easy_type (SLtype type, VOID_STAR f)
 {
    Easy_Type *ez;
-   
+
    (void) type;
    ez = (Easy_Type *) f;
    free_easy_type (ez);
@@ -1868,7 +1861,7 @@ static void destroy_easy_type (SLtype type, VOID_STAR f)
 static void destroy_multi_type (SLtype type, VOID_STAR f)
 {
    Multi_Type *m;
-   
+
    (void) type;
    m = (Multi_Type *) f;
    free_multi_type (m);
@@ -1903,7 +1896,7 @@ static int register_types (void)
 
 	Easy_Type_Id = SLclass_get_class_id (cl);
      }
-   
+
    if (Multi_Type_Id == 0)
      {
 	if (NULL == (cl = SLclass_allocate_class ("Curl_Multi_Type")))
@@ -1931,11 +1924,10 @@ static int register_types (void)
    return 0;
 }
 
-   
 int init_curl_module_ns (char *ns_name)
 {
    SLang_NameSpace_Type *ns;
-   
+
    if (-1 == register_types ())
      return -1;
 
