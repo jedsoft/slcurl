@@ -1080,7 +1080,7 @@ static void get_info_intrin (void)
 	/* drop */
       default:
 	SLang_verror (SL_INVALID_PARM, "Unknown or unsupported info type");
-	status = 0;
+	status = CURLE_OK;
 	break;
      }
 
