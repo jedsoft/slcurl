@@ -10,6 +10,7 @@ Changes since 0.2.1
    CURLOPT_PRIVATE by the module, and fixed a pointer related warning
    pertaining to its use.
 6. configure: parse /etc/ld.so.conf to look for lib paths.
+7. src/curl-module.c: Allow NULL to be used for string-valued options
 
 Changes since 0.2.0
 1. src/curl-module.c: removed "ifdef"s from the code and replaced them

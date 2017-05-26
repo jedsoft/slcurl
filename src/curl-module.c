@@ -433,13 +433,14 @@ static int set_string_opt_internal (Easy_Type *ez, CURLoption opt, char *str)
    if (old == str)
      return 0;
 
-   if (NULL == (str = SLang_create_slstring (str)))
+   if ((str != NULL)
+       && (NULL == (str = SLang_create_slstring (str))))
      return -1;
    status = curl_easy_setopt (ez->handle, opt, str);
    if (status != CURLE_OK)
      {
 	throw_curl_error (status, ez->errbuf);
-	SLang_free_slstring (str);
+	if (str != NULL) SLang_free_slstring (str);
 	return -1;
      }
    ez->opt_strings[indx] = str;
@@ -457,11 +458,16 @@ static int set_string_opt (Easy_Type *ez, CURLoption opt, int nargs)
 	SLang_verror (SL_INVALID_PARM, "Expecting a single string argument");
 	return -1;
      }
-   if (-1 == SLang_pop_slstring (&str))
+   if (SLang_peek_at_stack () == SLANG_NULL_TYPE)
+     {
+	SLang_pop_null ();
+	str = NULL;
+     }
+   else if (-1 == SLang_pop_slstring (&str))
      return -1;
 
    ret = set_string_opt_internal (ez, opt, str);
-   SLang_free_slstring (str);
+   if (str != NULL) SLang_free_slstring (str);
    return ret;
 }
 
