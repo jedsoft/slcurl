@@ -11,6 +11,8 @@ Changes since 0.2.1
    pertaining to its use.
 6. configure: parse /etc/ld.so.conf to look for lib paths.
 7. src/curl-module.c: Allow NULL to be used for string-valued options
+8. src/curl-module.c: Added CURLOPT_USE_SSL (deprecated CURLOPT_FTP_SSL)
+   and CURLOPT_ACCEPT_ENCODING (deprecated CURLOPT_ENCODING) (John Houck)
 
 Changes since 0.2.0
 1. src/curl-module.c: removed "ifdef"s from the code and replaced them
