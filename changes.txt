@@ -13,6 +13,8 @@ Changes since 0.2.1
 7. src/curl-module.c: Allow NULL to be used for string-valued options
 8. src/curl-module.c: Added CURLOPT_USE_SSL (deprecated CURLOPT_FTP_SSL)
    and CURLOPT_ACCEPT_ENCODING (deprecated CURLOPT_ENCODING) (John Houck)
+9. src/curl-module.c: If CURLOPT_URL is used to set the URL for a
+   descriptor, then update the EZ_Type url field.
 
 Changes since 0.2.0
 1. src/curl-module.c: removed "ifdef"s from the code and replaced them

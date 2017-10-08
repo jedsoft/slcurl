@@ -453,6 +453,15 @@ static int set_string_opt_internal (Easy_Type *ez, CURLoption opt, char *str)
      }
    ez->opt_strings[indx] = str;
    SLang_free_slstring (old);
+
+   if (opt == CURLOPT_URL)
+     {
+	if ((str != NULL)
+	    && (NULL == (str = SLang_create_slstring (str))))
+	  return -1;
+	SLang_free_slstring (ez->url);
+	ez->url = str;
+     }
    return 0;
 }
 
