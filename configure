@@ -653,6 +653,7 @@ ELFLIB_MAJOR_MINOR
 ELFLIB_MAJOR
 ELFLIB
 CC_SHARED
+CC_SHARED_FLAGS
 DYNAMIC_LINK_FLAGS
 ELF_DEP_LIBS
 ELF_LINK_CMD
@@ -703,6 +704,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -782,6 +784,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1034,6 +1037,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1171,7 +1183,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1324,6 +1336,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -4170,7 +4183,8 @@ case "$host_os" in
     ELF_CFLAGS="\$(CFLAGS) -fPIC"
     ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-O1 -Wl,--version-script,\$(VERSION_SCRIPT) -Wl,-soname,\$(ELFLIB_MAJOR)"
     ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
-    CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
+    CC_SHARED_FLAGS="-shared -fPIC"
+    CC_SHARED="\$(CC) $CC_SHARED_FLAGS \$(CFLAGS)"
     ;;
   *solaris* )
     if test "$GCC" = yes
@@ -4180,14 +4194,16 @@ case "$host_os" in
       ELF_CFLAGS="\$(CFLAGS) -fPIC"
       ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-ztext -Wl,-h,\$(ELFLIB_MAJOR)"
       ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
-      CC_SHARED="\$(CC) \$(CFLAGS) -G -fPIC"
+      CC_SHARED_FLAGS="-G -fPIC"
+      CC_SHARED="\$(CC) $CC_SHARED_FLAGS \$(CFLAGS)"
     else
       DYNAMIC_LINK_FLAGS=""
       ELF_CC="\$(CC)"
       ELF_CFLAGS="\$(CFLAGS) -K PIC"
       ELF_LINK="\$(CC) \$(LDFLAGS) -G -h\$(ELFLIB_MAJOR)"
       ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
-      CC_SHARED="\$(CC) \$(CFLAGS) -G -K PIC"
+      CC_SHARED_FLAGS="-G -K PIC"
+      CC_SHARED="\$(CC) $CC_SHARED_FLAGS \$(CFLAGS)"
     fi
     ;;
    # osr5 or unixware7 with current or late autoconf
@@ -4199,7 +4215,8 @@ case "$host_os" in
        ELF_CFLAGS="\$(CFLAGS) -fPIC"
        ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-h,\$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
-       CC_SHARED="\$(CC) \$(CFLAGS) -G -fPIC"
+       CC_SHARED_FLAGS="-G -fPIC"
+       CC_SHARED="\$(CC) $CC_SHARED_FLAGS \$(CFLAGS)"
      else
        DYNAMIC_LINK_FLAGS=""
        ELF_CC="\$(CC)"
@@ -4207,7 +4224,8 @@ case "$host_os" in
        # ELF_LINK="ld -G -z text -h#"
        ELF_LINK="\$(CC) \$(LDFLAGS) -G -z text -h\$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
-       CC_SHARED="\$(CC) \$(CFLAGS) -G -K pic"
+       CC_SHARED_FLAGS="-G -K pic"
+       CC_SHARED="\$(CC) $CC_SHARED_FLAGS \$(CFLAGS)"
      fi
      ;;
   *irix6.5* )
@@ -4221,14 +4239,16 @@ case "$host_os" in
        ELF_CFLAGS="\$(CFLAGS) -fPIC"
        ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-h,\$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
-       CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
+       CC_SHARED_FLAGS="-shared -fPIC"
+       CC_SHARED="\$(CC) $CC_SHARED_FLAGS \$(CFLAGS)"
      else
        DYNAMIC_LINK_FLAGS=""
        ELF_CC="\$(CC)"
        ELF_CFLAGS="\$(CFLAGS)"     # default anyhow
        ELF_LINK="\$(CC) \$(LDFLAGS) -shared -o \$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
-       CC_SHARED="\$(CC) \$(CFLAGS) -shared"
+       CC_SHARED_FLAGS="-shared"
+       CC_SHARED="\$(CC) $CC_SHARED_FLAGS \$(CFLAGS)"
      fi
      ;;
   *darwin* )
@@ -4237,7 +4257,8 @@ case "$host_os" in
      ELF_CFLAGS="\$(CFLAGS) -fno-common"
      ELF_LINK="\$(CC) \$(LDFLAGS) -dynamiclib -install_name \$(install_lib_dir)/\$(ELFLIB_MAJOR) -compatibility_version \$(ELF_MAJOR_VERSION) -current_version \$(ELF_MAJOR_VERSION).\$(ELF_MINOR_VERSION)"
      ELF_DEP_LIBS="\$(LDFLAGS) \$(DL_LIB)"
-     CC_SHARED="\$(CC) -bundle -flat_namespace -undefined suppress \$(CFLAGS) -fno-common"
+     CC_SHARED_FLAGS="-bundle -flat_namespace -undefined suppress -fno-common"
+     CC_SHARED="\$(CC) $CC_SHARED_FLAGS \$(CFLAGS)"
      ELFLIB="lib\$(THIS_LIB).dylib"
      ELFLIB_MAJOR="lib\$(THIS_LIB).\$(ELF_MAJOR_VERSION).dylib"
      ELFLIB_MAJOR_MINOR="lib\$(THIS_LIB).\$(ELF_MAJOR_VERSION).\$(ELF_MINOR_VERSION).dylib"
@@ -4253,7 +4274,8 @@ case "$host_os" in
     #fi
     ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-soname,\$(ELFLIB_MAJOR)"
     ELF_DEP_LIBS="\$(DL_LIB) -lm"
-    CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
+    CC_SHARED_FLAGS="-shared -fPIC"
+    CC_SHARED="\$(CC) $CC_SHARED_FLAGS \$(CFLAGS)"
     ;;
   *cygwin* )
     DYNAMIC_LINK_FLAGS=""
@@ -4264,7 +4286,8 @@ case "$host_os" in
     #ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-O1 -Wl,--version-script,\$(VERSION_SCRIPT) -Wl,-soname,\$(ELFLIB_MAJOR) -Wl,--out-implib=\$(DLL_IMPLIB_NAME) -Wl,-export-all-symbols -Wl,-enable-auto-import"
     ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-O1 -Wl,--version-script,\$(VERSION_SCRIPT) -Wl,-soname,\$(ELFLIB_MAJOR) -Wl,--out-implib=\$(DLL_IMPLIB_NAME)"
     ELF_DEP_LIBS="\$(DL_LIB) -lm"
-    CC_SHARED="\$(CC) \$(CFLAGS) -shared -DSLANG_DLL=1"
+    CC_SHARED_FLAGS="-shared -DSLANG_DLL=1"
+    CC_SHARED="\$(CC) $CC_SHARED_FLAGS \$(CFLAGS)"
         SLANG_LIB_FOR_MODULES="-L\$(ELFDIR) -lslang"
     INSTALL_MODULE="\$(INSTALL)"
     INSTALL_ELFLIB_TARGET="install-elf-cygwin"
@@ -4281,7 +4304,8 @@ case "$host_os" in
     ELF_CFLAGS="\$(CFLAGS) -fPIC"
     ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-O1 -Wl,--version-script,\$(VERSION_SCRIPT) -Wl,-soname,\$(ELFLIB_MAJOR)"
     ELF_DEP_LIBS="\$(DL_LIB)"
-    CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
+    CC_SHARED_FLAGS="-shared -fPIC"
+    CC_SHARED="\$(CC) $CC_SHARED_FLAGS \$(CFLAGS)"
     ;;
   * )
     echo "Note: ELF compiler for host_os=$host_os may be wrong"
@@ -4289,8 +4313,10 @@ case "$host_os" in
     ELF_CFLAGS="\$(CFLAGS) -fPIC"
     ELF_LINK="\$(CC) \$(LDFLAGS) -shared"
     ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
-    CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
+    CC_SHARED_FLAGS="-shared -fPIC"
+    CC_SHARED="\$(CC) $CC_SHARED_FLAGS \$(CFLAGS)"
 esac
+
 
 
 
@@ -5236,7 +5262,7 @@ case "$host_os" in
       fi
     fi
   ;;
-  *osf*|*openbsd*)
+  *osf*|*openbsd*|*freebsd*)
     if test "X$GCC" = Xyes
     then
       RPATH="-Wl,-rpath,"
@@ -5495,7 +5521,7 @@ case "$host_os" in
       fi
     fi
   ;;
-  *osf*|*openbsd*)
+  *osf*|*openbsd*|*freebsd*)
     if test "X$GCC" = Xyes
     then
       RPATH="-Wl,-rpath,"
@@ -5775,6 +5801,68 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+
+
+if test "X$libdir" != "X"
+then
+  if test "X$RPATH" = "X"
+  then
+
+case "$host_os" in
+  *linux*|*solaris* )
+    if test "X$GCC" = Xyes
+    then
+      if test "X$ac_R_nospace" = "Xno"
+      then
+        RPATH="-Wl,-R,"
+      else
+        RPATH="-Wl,-R"
+      fi
+    else
+      if test "X$ac_R_nospace" = "Xno"
+      then
+        RPATH="-R "
+      else
+	RPATH="-R"
+      fi
+    fi
+  ;;
+  *osf*|*openbsd*|*freebsd*)
+    if test "X$GCC" = Xyes
+    then
+      RPATH="-Wl,-rpath,"
+    else
+      RPATH="-rpath "
+    fi
+  ;;
+  *netbsd*)
+    if test "X$GCC" = Xyes
+    then
+      RPATH="-Wl,-R"
+    fi
+  ;;
+esac
+
+    if test "X$RPATH" != "X"
+    then
+      RPATH="$RPATH$libdir"
+    fi
+  else
+    _already_there=0
+    for X in `echo $RPATH | sed 's/:/ /g'`
+    do
+      if test "$X" = "$libdir"
+      then
+        _already_there=1
+	break
+      fi
+    done
+    if test $_already_there = 0
+    then
+      RPATH="$RPATH:$libdir"
+    fi
+  fi
+fi
 
 ELF_CFLAGS="$ELF_CFLAGS $IEEE_CFLAGS"
 CFLAGS="$CFLAGS $IEEE_CFLAGS"

@@ -73,5 +73,15 @@ do
    fi
 done
 
+for Z in "x86_64-linux-gnu"
+do
+  Y="/usr/lib/$Z"
+  X="/usr/include/$Z"
+  if test -d "$Y" -a -d "$X"
+  then
+     XY="$XY $X,$Y"
+  fi
+done
+
 echo $XY
 
