@@ -4,8 +4,8 @@
 # List of modules and associated .sl files to install
 #---------------------------------------------------------------------------
 MODULES = curl-module.so
-SL_FILES = curl.sl babelfish.sl
-HLP_FILES = ../doc/help/curl.hlp ../doc/help/babelfish.hlp
+SL_FILES = curl.sl # babelfish.sl
+HLP_FILES = ../doc/help/curl.hlp # ../doc/help/babelfish.hlp
 MODULE_VERSION	= `./mkversion.sh`
 DOC_FILES = ../doc/text/curl.txt
 DEMO_FILES = ../demo/translate
@@ -69,7 +69,7 @@ all: $(MODULES)
 # Put Rules to create the modules here
 #---------------------------------------------------------------------------
 curl-module.so: curl-module.c version.h
-	$(CC_SHARED) $(INCS) curl-module.c -o curl-module.so $(LIBS)
+	$(CC_SHARED) $(INCS) $(LDFLAGS) curl-module.c -o curl-module.so $(LIBS)
 version.h: ../changes.txt
 	if [ -x $(UPDATE_VERSION_SCRIPT) ]; then \
 	  $(UPDATE_VERSION_SCRIPT) ../changes.txt ./version.h; \

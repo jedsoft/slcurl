@@ -17,6 +17,8 @@ Changes since 0.2.1
    descriptor, then update the EZ_Type url field.
 10. autoconf/scripts/getsyslibs.sh: Updated to better support
     multiarch on linux
+11. Updated aclocal.m4; added support for CPPFLAGS (based upon patch
+    from Rafael Laboissière)
 
 Changes since 0.2.0
 1. src/curl-module.c: removed "ifdef"s from the code and replaced them
