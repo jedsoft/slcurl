@@ -279,7 +279,7 @@ static size_t read_function (void *ptr, size_t size, size_t nmemb, void *stream)
 {
    Easy_Type *ez;
    SLang_BString_Type *bstr;
-   unsigned int bytes_read, bytes_requested;
+   SLstrlen_Type bytes_read, bytes_requested;
    unsigned char *bytes;
 
    bytes_requested = (unsigned int) (size * nmemb);
@@ -1512,7 +1512,7 @@ static void escape_intrin (SLang_BString_Type *bstr)
    Easy_Type *ez;
    char *escaped_string;
    char *url;
-   unsigned int len;
+   SLstrlen_Type len;
 
    if (NULL == (url = (char *) SLbstring_get_pointer (bstr, &len)))
      return;
@@ -1915,13 +1915,13 @@ static void destroy_multi_type (SLtype type, VOID_STAR f)
 }
 
 #if SLANG_VERSION >= 20005
-static int multi_length_method (SLtype type, VOID_STAR v, unsigned int *len)
+static int multi_length_method (SLtype type, VOID_STAR v, SLuindex_Type *len)
 {
    Multi_Type *m;
 
    (void) type;
    m = (Multi_Type *) SLang_object_from_mmt (*(SLang_MMT_Type **)v);
-   *len = (unsigned int) m->length;
+   *len = (SLuindex_Type) m->length;
    return 0;
 }
 #endif
