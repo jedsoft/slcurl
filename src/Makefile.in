@@ -85,6 +85,8 @@ test:
 #---------------------------------------------------------------------------
 # Installation Rules
 #---------------------------------------------------------------------------
+install-directories-stamp: install_directories
+	touch install-directories-stamp
 install_directories:
 	$(MKINSDIR) $(DEST_MODULE_INSTALL_DIR)
 	$(MKINSDIR) $(DEST_SL_FILES_INSTALL_DIR)
@@ -92,7 +94,7 @@ install_directories:
 	$(MKINSDIR) $(DEST_DOC_FILES_INSTALL_DIR)
 	$(MKINSDIR) $(DEST_DOC_FILES_INSTALL_DIR)/examples/
 #
-install_modules:
+install_modules: install-directories-stamp
 	@for X in $(MODULES); \
 	do \
 		Y=$$X.$(MODULE_VERSION); \
@@ -106,7 +108,7 @@ install_modules:
 		$(LN) $$Y $(DEST_MODULE_INSTALL_DIR)/$$X; \
 	done
 #
-install_slfiles:
+install_slfiles: install-directories-stamp
 	@for X in $(SL_FILES); \
 	do \
 		echo $(INSTALL_DATA) $$X $(DEST_SL_FILES_INSTALL_DIR); \
@@ -116,7 +118,7 @@ install_slfiles:
 		fi; \
 	done
 #
-install_hlpfiles:
+install_hlpfiles: install-directories-stamp
 	@for X in $(HLP_FILES); \
 	do \
 		echo $(INSTALL_DATA) $$X $(DEST_HLP_FILES_INSTALL_DIR); \
@@ -126,7 +128,7 @@ install_hlpfiles:
 		fi; \
 	done
 #
-install_docfiles:
+install_docfiles: install-directories-stamp
 	@for X in $(DOC_FILES); \
 	do \
 		echo $(INSTALL_DATA) $$X $(DEST_DOC_FILES_INSTALL_DIR); \
@@ -144,10 +146,11 @@ install_docfiles:
 		fi; \
 	done
 #
-install: all install_directories install_modules install_slfiles \
+install: all install_modules install_slfiles \
  install_hlpfiles install_docfiles
 
 clean:
 	-/bin/rm -f $(MODULES) *~ \#*
+	-/bin/rm -f install-directories-stamp
 distclean: clean
 	-/bin/rm -f config.h Makefile
