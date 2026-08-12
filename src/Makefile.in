@@ -12,13 +12,14 @@ DEMO_FILES = ../demo/translate
 #---------------------------------------------------------------------------
 # Installation Directories
 #---------------------------------------------------------------------------
+PACKAGE=slang-curl   # unless --docdir is specified, @docdir@ uses ${PACKAGE}
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 datarootdir = @datarootdir@
 MODULE_INSTALL_DIR = @MODULE_INSTALL_DIR@
 SL_FILES_INSTALL_DIR = @SL_FILES_INSTALL_DIR@
 HLP_FILES_INSTALL_DIR = $(SL_FILES_INSTALL_DIR)/help
-DOC_FILES_INSTALL_DIR = $(datarootdir)/doc/slang-curl
+DOC_FILES_INSTALL_DIR = @docdir@
 
 #---------------------------------------------------------------------------
 # C Compiler to create a shared library
