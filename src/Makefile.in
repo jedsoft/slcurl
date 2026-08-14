@@ -12,7 +12,8 @@ DEMO_FILES = ../demo/translate
 #---------------------------------------------------------------------------
 # Installation Directories
 #---------------------------------------------------------------------------
-PACKAGE=slang-curl   # unless --docdir is specified, @docdir@ uses ${PACKAGE}
+# unless --docdir is specified, @docdir@ uses ${PACKAGE}
+PACKAGE=slang-curl
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 datarootdir = @datarootdir@
